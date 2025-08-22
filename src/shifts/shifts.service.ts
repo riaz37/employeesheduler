@@ -466,6 +466,107 @@ export class ShiftsService {
     };
   }
 
+  async createTemplate(templateData: any): Promise<ShiftDocument> {
+    // Check if template ID already exists
+    const existingTemplate = await this.shiftModel.findOne({
+      shiftId: templateData.shiftId,
+    });
+
+    if (existingTemplate) {
+      throw new ConflictException('Template ID already exists');
+    }
+
+    const template = new this.shiftModel({
+      ...templateData,
+      date: new Date(templateData.date),
+      scheduledAt: new Date(),
+      status: ShiftStatus.SCHEDULED,
+      isTemplate: true, // Mark as template
+    });
+
+    return template.save();
+  }
+
+  async generateRecurringShifts(
+    templateId: string,
+    startDate: string,
+    endDate: string,
+    pattern: string,
+  ): Promise<any> {
+    const template = await this.shiftModel.findById(templateId);
+    if (!template) {
+      throw new NotFoundException('Template not found');
+    }
+
+    // Check if shift can be used as template (has template in title or ID)
+    const isTemplateShift =
+      template.title?.toLowerCase().includes('template') ||
+      template.shiftId?.toLowerCase().includes('template');
+
+    if (!isTemplateShift) {
+      throw new BadRequestException('Shift is not suitable as a template');
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const shifts = [];
+    const current = new Date(start);
+
+    while (current <= end) {
+      // Check if current date matches pattern
+      let shouldCreate = false;
+
+      switch (pattern.toLowerCase()) {
+        case 'daily':
+          shouldCreate = true;
+          break;
+        case 'weekly':
+          // Create shift on same day of week as template
+          shouldCreate = current.getDay() === template.date.getDay();
+          break;
+        case 'monthly':
+          // Create shift on same date of month as template
+          shouldCreate = current.getDate() === template.date.getDate();
+          break;
+        default:
+          throw new BadRequestException(
+            'Invalid pattern. Use: daily, weekly, or monthly',
+          );
+      }
+
+      if (shouldCreate) {
+        const shiftData = {
+          ...template.toObject(),
+          _id: undefined, // Remove template ID
+          shiftId: `SHIFT${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          date: new Date(current),
+          scheduledAt: new Date(),
+          isTemplate: false, // Mark as regular shift
+        };
+
+        const shift = new this.shiftModel(shiftData);
+        shifts.push(await shift.save());
+      }
+
+      // Move to next date
+      current.setDate(current.getDate() + 1);
+    }
+
+    return {
+      message: `Generated ${shifts.length} recurring shifts`,
+      templateId,
+      pattern,
+      startDate,
+      endDate,
+      shifts: shifts.map((s) => ({
+        id: s._id,
+        shiftId: s.shiftId,
+        date: s.date,
+        title: s.title,
+      })),
+    };
+  }
+
   private async checkAssignmentConflicts(
     shiftId: string,
     employeeIds: string[],

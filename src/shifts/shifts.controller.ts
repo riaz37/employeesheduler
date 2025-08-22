@@ -48,6 +48,48 @@ export class ShiftsController {
     return this.shiftsService.create(createShiftDto);
   }
 
+  @Post('template')
+  @ApiOperation({ summary: 'Create a recurring shift template' })
+  @ApiResponse({
+    status: 201,
+    description: 'Shift template created successfully',
+    type: Shift,
+  })
+  @ApiResponse({ status: 400, description: 'Bad request - Invalid data' })
+  async createTemplate(@Body() templateData: any): Promise<ShiftDocument> {
+    return this.shiftsService.createTemplate(templateData);
+  }
+
+  @Post('template/:id/recurring')
+  @ApiOperation({ summary: 'Generate recurring shifts from template' })
+  @ApiParam({ name: 'id', description: 'Template shift ID' })
+  @ApiQuery({
+    name: 'startDate',
+    description: 'Start date for recurring shifts',
+  })
+  @ApiQuery({ name: 'endDate', description: 'End date for recurring shifts' })
+  @ApiQuery({
+    name: 'pattern',
+    description: 'Recurrence pattern (daily, weekly, monthly)',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Recurring shifts created successfully',
+  })
+  async generateRecurringShifts(
+    @Param('id') id: string,
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Query('pattern') pattern: string,
+  ): Promise<any> {
+    return this.shiftsService.generateRecurringShifts(
+      id,
+      startDate,
+      endDate,
+      pattern,
+    );
+  }
+
   @Get()
   @ApiOperation({ summary: 'Get all shifts with pagination and filtering' })
   @ApiQuery({

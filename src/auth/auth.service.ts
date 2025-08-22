@@ -2,6 +2,7 @@ import {
   Injectable,
   UnauthorizedException,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
@@ -12,10 +13,26 @@ import {
   Employee,
   EmployeeDocument,
 } from '../employees/schemas/employee.schema';
+import { RegisterDto } from './dto/register.dto';
 
 export interface LoginResponse {
   access_token: string;
   refresh_token: string;
+  employee: {
+    id: string;
+    employeeId: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    role: string;
+    department: string;
+    location: string;
+    team: string;
+  };
+}
+
+export interface RegisterResponse {
+  message: string;
   employee: {
     id: string;
     employeeId: string;
@@ -36,6 +53,63 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
   ) {}
+
+  async register(registerDto: RegisterDto): Promise<RegisterResponse> {
+    // Check if employee ID already exists
+    const existingEmployeeId = await this.employeeModel.findOne({
+      employeeId: registerDto.employeeId,
+    });
+    if (existingEmployeeId) {
+      throw new ConflictException('Employee ID already exists');
+    }
+
+    // Check if email already exists
+    const existingEmail = await this.employeeModel.findOne({
+      email: registerDto.email.toLowerCase(),
+    });
+    if (existingEmail) {
+      throw new ConflictException('Email already exists');
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(registerDto.password, 10);
+
+    // Create new employee
+    const employee = new this.employeeModel({
+      ...registerDto,
+      email: registerDto.email.toLowerCase(),
+      password: hashedPassword,
+      hireDate: new Date(),
+      totalHoursWorked: 0,
+      lastActiveDate: new Date(),
+      // Set default values for optional fields
+      skills: [],
+      availabilityWindows: [],
+      workPreference: {
+        maxHoursPerWeek: 40,
+        preferredShifts: ['morning', 'afternoon'],
+        preferredLocations: [registerDto.location],
+        maxConsecutiveDays: 5,
+      },
+    });
+
+    const savedEmployee = await employee.save();
+
+    return {
+      message: 'Employee registered successfully',
+      employee: {
+        id: savedEmployee._id.toString(),
+        employeeId: savedEmployee.employeeId,
+        email: savedEmployee.email,
+        firstName: savedEmployee.firstName,
+        lastName: savedEmployee.lastName,
+        role: savedEmployee.role,
+        department: savedEmployee.department,
+        location: savedEmployee.location,
+        team: savedEmployee.team,
+      },
+    };
+  }
 
   async validateEmployee(
     email: string,

@@ -16,6 +16,6 @@ import { TimeOff, TimeOffSchema } from '../time-off/schemas/time-off.schema';
   ],
   controllers: [AnalyticsController],
   providers: [AnalyticsService],
-  exports: [AnalyticsService],
+  exports: [AnalyticsService, MongooseModule],
 })
 export class AnalyticsModule {}

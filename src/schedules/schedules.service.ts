@@ -456,12 +456,211 @@ export class SchedulesService {
   private async detectConflicts(scheduleData: any): Promise<any[]> {
     const conflicts = [];
 
-    // This is a simplified conflict detection
-    // In a real implementation, you would check for:
-    // - Double bookings
-    // - Time-off clashes
-    // - Skill mismatches
-    // - Availability conflicts
+    // Get detailed data for conflict detection
+    const shifts = await this.shiftModel
+      .find({ _id: { $in: scheduleData.shifts } })
+      .populate('assignedEmployees', 'firstName lastName availabilityWindows')
+      .exec();
+
+    const employees = await this.employeeModel
+      .find({ _id: { $in: scheduleData.employees } })
+      .exec();
+
+    const timeOffRequests = await this.timeOffModel
+      .find({ _id: { $in: scheduleData.timeOffRequests } })
+      .exec();
+
+    // 1. Detect double-bookings (employee assigned to overlapping shifts)
+    const employeeShifts: { [key: string]: any[] } = {};
+    for (const shift of shifts) {
+      for (const employeeId of shift.assignedEmployees) {
+        const empId = employeeId.toString();
+        if (!employeeShifts[empId]) {
+          employeeShifts[empId] = [];
+        }
+        employeeShifts[empId].push(shift);
+      }
+    }
+
+    for (const [employeeId, employeeShiftsList] of Object.entries(
+      employeeShifts,
+    )) {
+      if (employeeShiftsList.length > 1) {
+        // Check for overlapping shifts on the same date
+        for (let i = 0; i < employeeShiftsList.length; i++) {
+          for (let j = i + 1; j < employeeShiftsList.length; j++) {
+            const shift1 = employeeShiftsList[i];
+            const shift2 = employeeShiftsList[j];
+
+            if (shift1.date.toDateString() === shift2.date.toDateString()) {
+              // Check if shifts overlap in time
+              const start1 = new Date(`2000-01-01 ${shift1.startTime}`);
+              const end1 = new Date(`2000-01-01 ${shift1.endTime}`);
+              const start2 = new Date(`2000-01-01 ${shift2.startTime}`);
+              const end2 = new Date(`2000-01-01 ${shift2.endTime}`);
+
+              if (start1 < end2 && start2 < end1) {
+                conflicts.push({
+                  type: 'double_booking',
+                  severity: 'high',
+                  description: `Employee ${employeeId} is assigned to overlapping shifts`,
+                  affectedShifts: [shift1._id, shift2._id],
+                  affectedEmployees: [employeeId],
+                  resolution: 'Reassign one of the shifts',
+                  details: {
+                    shift1: {
+                      id: shift1._id,
+                      title: shift1.title,
+                      time: `${shift1.startTime}-${shift1.endTime}`,
+                    },
+                    shift2: {
+                      id: shift2._id,
+                      title: shift2.title,
+                      time: `${shift2.startTime}-${shift2.endTime}`,
+                    },
+                  },
+                });
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // 2. Detect time-off conflicts (employee scheduled during approved time-off)
+    for (const timeOff of timeOffRequests) {
+      if (timeOff.status === 'approved') {
+        for (const shift of shifts) {
+          if (
+            shift.date >= timeOff.startDate &&
+            shift.date <= timeOff.endDate
+          ) {
+            if (shift.assignedEmployees.includes(timeOff.employeeId)) {
+              conflicts.push({
+                type: 'time_off_conflict',
+                severity: 'medium',
+                description: `Employee ${timeOff.employeeId} is assigned to shift during approved time-off`,
+                affectedShifts: [shift._id],
+                affectedEmployees: [timeOff.employeeId],
+                resolution: 'Reassign shift to available employee',
+                details: {
+                  timeOff: {
+                    type: timeOff.type,
+                    dates: `${timeOff.startDate.toDateString()} - ${timeOff.endDate.toDateString()}`,
+                  },
+                  shift: {
+                    id: shift._id,
+                    title: shift.title,
+                    date: shift.date.toDateString(),
+                  },
+                },
+              });
+            }
+          }
+        }
+      }
+    }
+
+    // 3. Detect availability conflicts (employee scheduled outside availability windows)
+    for (const shift of shifts) {
+      const shiftDate = shift.date;
+      const dayOfWeek = shiftDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+
+      for (const employeeId of shift.assignedEmployees) {
+        const employee = employees.find(
+          (emp) => emp._id.toString() === employeeId.toString(),
+        );
+        if (employee && employee.availabilityWindows) {
+          const availability = employee.availabilityWindows.find(
+            (aw) => aw.dayOfWeek === dayOfWeek,
+          );
+
+          if (availability && availability.isAvailable) {
+            const shiftStart = new Date(`2000-01-01 ${shift.startTime}`);
+            const shiftEnd = new Date(`2000-01-01 ${shift.endTime}`);
+            const availStart = new Date(`2000-01-01 ${availability.startTime}`);
+            const availEnd = new Date(`2000-01-01 ${availability.endTime}`);
+
+            if (shiftStart < availStart || shiftEnd > availEnd) {
+              conflicts.push({
+                type: 'availability_conflict',
+                severity: 'medium',
+                description: `Employee ${employee.firstName} ${employee.lastName} scheduled outside availability window`,
+                affectedShifts: [shift._id],
+                affectedEmployees: [employeeId],
+                resolution:
+                  'Adjust shift time or reassign to available employee',
+                details: {
+                  employee: `${employee.firstName} ${employee.lastName}`,
+                  availability: `${availability.startTime}-${availability.endTime}`,
+                  shift: `${shift.startTime}-${shift.endTime}`,
+                  day: [
+                    'Sunday',
+                    'Monday',
+                    'Tuesday',
+                    'Wednesday',
+                    'Thursday',
+                    'Friday',
+                    'Saturday',
+                  ][dayOfWeek],
+                },
+              });
+            }
+          } else if (!availability || !availability.isAvailable) {
+            conflicts.push({
+              type: 'availability_conflict',
+              severity: 'high',
+              description: `Employee ${employee.firstName} ${employee.lastName} scheduled on unavailable day`,
+              affectedShifts: [shift._id],
+              affectedEmployees: [employeeId],
+              resolution: 'Reassign shift to available employee',
+              details: {
+                employee: `${employee.firstName} ${employee.lastName}`,
+                day: [
+                  'Sunday',
+                  'Monday',
+                  'Tuesday',
+                  'Wednesday',
+                  'Thursday',
+                  'Friday',
+                  'Saturday',
+                ][dayOfWeek],
+              },
+            });
+          }
+        }
+      }
+    }
+
+    // 4. Detect skill mismatches (employee assigned without required skills)
+    for (const shift of shifts) {
+      for (const requirement of shift.requirements) {
+        for (const employeeId of shift.assignedEmployees) {
+          const employee = employees.find(
+            (emp) => emp._id.toString() === employeeId.toString(),
+          );
+          if (employee) {
+            // Check if employee has the required role
+            if (employee.role !== requirement.role) {
+              conflicts.push({
+                type: 'role_mismatch',
+                severity: 'medium',
+                description: `Employee ${employee.firstName} ${employee.lastName} assigned to shift requiring different role`,
+                affectedShifts: [shift._id],
+                affectedEmployees: [employeeId],
+                resolution:
+                  'Reassign to employee with correct role or adjust requirements',
+                details: {
+                  employee: `${employee.firstName} ${employee.lastName}`,
+                  employeeRole: employee.role,
+                  requiredRole: requirement.role,
+                },
+              });
+            }
+          }
+        }
+      }
+    }
 
     return conflicts;
   }

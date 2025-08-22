@@ -14,16 +14,55 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { RegisterDto } from './dto/register.dto';
 
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Post('register')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Employee registration' })
+  @ApiResponse({
+    status: 201,
+    description: 'Registration successful',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+        employee: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            employeeId: { type: 'string' },
+            email: { type: 'string' },
+            firstName: { type: 'string' },
+            lastName: { type: 'string' },
+            role: { type: 'string' },
+            department: { type: 'string' },
+            location: { type: 'string' },
+            team: { type: 'string' },
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - Invalid data or email already exists',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Conflict - Employee ID or email already exists',
+  })
+  async register(@Body() registerDto: RegisterDto) {
+    return this.authService.register(registerDto);
+  }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -113,8 +152,6 @@ export class AuthController {
   @ApiOperation({ summary: 'Employee logout' })
   @ApiResponse({ status: 200, description: 'Logout successful' })
   async logout(@Request() req) {
-    // In a real application, you might want to blacklist the token
-    // For now, we'll just return a success message
     return { message: 'Logout successful' };
   }
 }
