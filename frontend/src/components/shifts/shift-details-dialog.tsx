@@ -223,11 +223,11 @@ export function ShiftDetailsDialog({ shift, open, onOpenChange }: ShiftDetailsDi
                         <h4 className="font-medium">{requirement.role}</h4>
                         <Badge variant="outline">{requirement.quantity} staff</Badge>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div>
                           <Label className="text-gray-600">Skills</Label>
                           <div className="flex flex-wrap gap-1 mt-1">
-                            {requirement.skillRequirements.map((skill, skillIndex) => (
+                            {requirement.skills.map((skill, skillIndex) => (
                               <Badge key={skillIndex} variant="secondary" className="text-xs">
                                 {skill}
                               </Badge>
@@ -235,12 +235,8 @@ export function ShiftDetailsDialog({ shift, open, onOpenChange }: ShiftDetailsDi
                           </div>
                         </div>
                         <div>
-                          <Label className="text-gray-600">Min Experience</Label>
-                          <p>{requirement.minExperience} years</p>
-                        </div>
-                        <div>
-                          <Label className="text-gray-600">Certification</Label>
-                          <p>{requirement.certificationRequired ? 'Required' : 'Not Required'}</p>
+                          <Label className="text-gray-600">Quantity</Label>
+                          <p>{requirement.quantity} staff</p>
                         </div>
                       </div>
                     </div>
@@ -263,12 +259,12 @@ export function ShiftDetailsDialog({ shift, open, onOpenChange }: ShiftDetailsDi
             <CardContent>
               {shift.assignedEmployees && shift.assignedEmployees.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {shift.assignedEmployees.map((employee, index) => (
+                  {shift.assignedEmployees.map((employeeId, index) => (
                     <div key={index} className="flex items-center space-x-2 p-2 bg-gray-50 rounded">
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-sm">{employee.employeeId}</span>
+                      <span className="text-sm">{typeof employeeId === 'string' ? employeeId : 'Employee ID'}</span>
                       <Badge variant="outline" className="text-xs">
-                        {employee.role}
+                        Assigned
                       </Badge>
                     </div>
                   ))}

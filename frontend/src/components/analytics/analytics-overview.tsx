@@ -87,17 +87,95 @@ export function AnalyticsOverview({
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i}>
+      <div className="space-y-6">
+        {/* Key Metrics Cards Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
+              </CardHeader>
+              <CardContent>
+                <div className="h-8 w-16 bg-gray-200 rounded animate-pulse" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Conflict & Coverage Status Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Conflict Status Skeleton */}
+          <Card className="border-orange-200">
             <CardHeader>
-              <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
+              <div className="h-5 w-32 bg-gray-200 rounded animate-pulse" />
+              <div className="h-4 w-48 bg-gray-200 rounded animate-pulse" />
             </CardHeader>
             <CardContent>
-              <div className="h-8 w-16 bg-gray-200 rounded animate-pulse" />
+              <div className="space-y-4">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="flex items-center justify-between">
+                    <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
+                    <div className="h-6 w-16 bg-gray-200 rounded animate-pulse" />
+                  </div>
+                ))}
+                <div className="p-3 bg-gray-100 rounded-lg">
+                  <div className="h-4 w-full bg-gray-200 rounded animate-pulse" />
+                </div>
+              </div>
             </CardContent>
           </Card>
-        ))}
+
+          {/* Coverage Status Skeleton */}
+          <Card className="border-blue-200">
+            <CardHeader>
+              <div className="h-5 w-32 bg-gray-200 rounded animate-pulse" />
+              <div className="h-4 w-48 bg-gray-200 rounded animate-pulse" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Overall Coverage Skeleton */}
+                <div>
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex items-center justify-between mb-2">
+                      <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
+                      <div className="h-6 w-16 bg-gray-200 rounded animate-pulse" />
+                    </div>
+                  ))}
+                  {/* Progress Bar Skeleton */}
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-gray-300 h-2 rounded-full w-3/4 animate-pulse" />
+                  </div>
+                </div>
+
+                {/* Role Coverage Skeleton */}
+                <div className="mt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
+                    <div className="h-6 w-16 bg-gray-200 rounded animate-pulse" />
+                  </div>
+                  
+                  {/* Role Grid Skeleton */}
+                  <div className="grid grid-cols-2 gap-2 max-h-32">
+                    {[...Array(6)].map((_, i) => (
+                      <div key={i} className="bg-gray-100 p-2 rounded-lg">
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="h-3 w-16 bg-gray-200 rounded animate-pulse" />
+                          <div className="h-4 w-12 bg-gray-200 rounded animate-pulse" />
+                        </div>
+                        <div className="h-3 w-12 bg-gray-200 rounded animate-pulse" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Optimization Suggestions Skeleton */}
+                <div className="p-3 bg-gray-100 rounded-lg">
+                  <div className="h-4 w-full bg-gray-200 rounded animate-pulse" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }

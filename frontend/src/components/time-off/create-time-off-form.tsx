@@ -95,10 +95,10 @@ export function CreateTimeOffForm({ onSuccess }: CreateTimeOffFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         {/* Basic Information */}
-        <FormSection title="Basic Information">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormSection title="Basic Information" description="Enter the basic details for the time-off request">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={control}
               name="requestId"
@@ -180,125 +180,135 @@ export function CreateTimeOffForm({ onSuccess }: CreateTimeOffFormProps) {
         </FormSection>
 
         {/* Date and Time */}
-        <FormSection title="Date and Time">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={control}
-              name="startDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Start Date *</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      {...field}
-                      onChange={(e) => {
-                        field.onChange(e.target.value);
-                        calculateHoursAndDays();
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        <FormSection title="Date and Time" description="Specify when the time-off will occur">
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={control}
+                name="startDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-gray-700">Start Date *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e.target.value);
+                          calculateHoursAndDays();
+                        }}
+                        className="mt-2"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={control}
-              name="endDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>End Date *</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      {...field}
-                      onChange={(e) => {
-                        field.onChange(e.target.value);
-                        calculateHoursAndDays();
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={control}
+                name="endDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-gray-700">End Date *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e.target.value);
+                          calculateHoursAndDays();
+                        }}
+                        className="mt-2"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-            <FormField
-              control={control}
-              name="startTime"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Start Time *</FormLabel>
-                  <FormControl>
-                    <Input type="time" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={control}
+                name="startTime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-gray-700">Start Time *</FormLabel>
+                    <FormControl>
+                      <Input type="time" {...field} className="mt-2" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={control}
-              name="endTime"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>End Time *</FormLabel>
-                  <FormControl>
-                    <Input type="time" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={control}
+                name="endTime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-gray-700">End Time *</FormLabel>
+                    <FormControl>
+                      <Input type="time" {...field} className="mt-2" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-            <FormField
-              control={control}
-              name="totalHours"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Total Hours *</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      step="0.5"
-                      min="0.5"
-                      max="24"
-                      {...field}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={control}
+                name="totalHours"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-gray-700">Total Hours *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.5"
+                        min="0.5"
+                        max="24"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        className="mt-2"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={control}
-              name="totalDays"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Total Days *</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      step="0.5"
-                      min="0.5"
-                      max="365"
-                      {...field}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={control}
+                name="totalDays"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-gray-700">Total Days *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.5"
+                        min="0.5"
+                        max="365"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
         </FormSection>
 
         {/* Options */}
-        <FormSection title="Options">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <FormSection title="Options" description="Configure additional settings for the time-off request">
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <FormField
               control={control}
               name="isHalfDay"
@@ -353,13 +363,14 @@ export function CreateTimeOffForm({ onSuccess }: CreateTimeOffFormProps) {
               )}
             />
           </div>
+          </div>
         </FormSection>
 
         {/* Coverage Employees */}
         {requiresCoverage && (
           <FormSection title="Coverage Employees" description="Employees who can cover during this time-off period">
-            <div className="space-y-4">
-              <div className="flex space-x-2">
+            <div className="space-y-6">
+              <div className="flex space-x-3">
                 <Input
                   value={newCoverageEmployee}
                   onChange={(e) => setNewCoverageEmployee(e.target.value)}
@@ -390,9 +401,91 @@ export function CreateTimeOffForm({ onSuccess }: CreateTimeOffFormProps) {
           </FormSection>
         )}
 
+        {/* Attachments */}
+        <FormSection title="Attachments" description="Add supporting documents or files">
+          <div className="space-y-6">
+            <div className="flex space-x-3">
+              <Input
+                placeholder="File URL or path (e.g., https://example.com/document.pdf)"
+                onChange={(e) => {
+                  const currentAttachments = watch('attachments') || [];
+                  if (e.target.value.trim()) {
+                    setValue('attachments', [...currentAttachments, e.target.value.trim()]);
+                    e.target.value = '';
+                  }
+                }}
+              />
+              <Button type="button" onClick={() => {}}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add
+              </Button>
+            </div>
+            {(watch('attachments') || []).length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {(watch('attachments') || []).map((attachment, index) => (
+                  <Badge key={index} variant="outline" className="flex items-center space-x-1">
+                    <span className="truncate max-w-xs">{attachment}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const currentAttachments = watch('attachments') || [];
+                        setValue('attachments', currentAttachments.filter((_, i) => i !== index));
+                      }}
+                      className="ml-1 hover:text-red-600"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+        </FormSection>
+
+        {/* Affected Shifts */}
+        <FormSection title="Affected Shifts" description="Shifts that will be affected by this time-off request">
+          <div className="space-y-6">
+            <div className="flex space-x-3">
+              <Input
+                placeholder="Shift ID (e.g., SHIFT001)"
+                onChange={(e) => {
+                  const currentShifts = watch('affectedShifts') || [];
+                  if (e.target.value.trim()) {
+                    setValue('affectedShifts', [...currentShifts, e.target.value.trim()]);
+                    e.target.value = '';
+                  }
+                }}
+              />
+              <Button type="button" onClick={() => {}}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add
+              </Button>
+            </div>
+            {(watch('affectedShifts') || []).length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {(watch('affectedShifts') || []).map((shift, index) => (
+                  <Badge key={index} variant="outline" className="flex items-center space-x-1">
+                    <span>{shift}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const currentShifts = watch('affectedShifts') || [];
+                        setValue('affectedShifts', currentShifts.filter((_, i) => i !== index));
+                      }}
+                      className="ml-1 hover:text-red-600"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+        </FormSection>
+
         {/* Reason and Description */}
-        <FormSection title="Reason and Description">
-          <div className="space-y-4">
+        <FormSection title="Reason and Description" description="Provide details about the time-off request">
+          <div className="space-y-6">
             <FormField
               control={control}
               name="reason"
@@ -449,11 +542,11 @@ export function CreateTimeOffForm({ onSuccess }: CreateTimeOffFormProps) {
         </FormSection>
 
         {/* Submit Button */}
-        <div className="flex justify-end space-x-4">
-          <Button type="button" variant="outline" onClick={onSuccess}>
+        <div className="flex justify-end space-x-4 pt-6 border-t">
+          <Button type="button" variant="outline" onClick={onSuccess} className="px-6">
             Cancel
           </Button>
-          <Button type="submit" disabled={createTimeOffMutation.isPending}>
+          <Button type="submit" disabled={createTimeOffMutation.isPending} className="px-8">
             {createTimeOffMutation.isPending ? 'Creating...' : 'Submit Request'}
           </Button>
         </div>

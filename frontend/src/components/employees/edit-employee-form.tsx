@@ -84,7 +84,8 @@ export function EditEmployeeForm({ employee, onSuccess }: EditEmployeeFormProps)
 
   const removeSkill = (index: number) => {
     const currentSkills = watch('skills') || [];
-    setValue('skills', currentSkills.filter((_, i) => i !== index));
+    const updatedSkills = currentSkills.filter((_, i) => i !== index);
+    setValue('skills', updatedSkills);
   };
 
   const addAvailability = () => {
@@ -101,7 +102,8 @@ export function EditEmployeeForm({ employee, onSuccess }: EditEmployeeFormProps)
 
   const removeAvailability = (index: number) => {
     const currentAvailability = watch('availabilityWindows') || [];
-    setValue('availabilityWindows', currentAvailability.filter((_, i) => i !== index));
+    const updatedAvailability = currentAvailability.filter((_, i) => i !== index);
+    setValue('availabilityWindows', updatedAvailability);
   };
 
   const addPreferredShift = () => {
@@ -381,6 +383,12 @@ export function EditEmployeeForm({ employee, onSuccess }: EditEmployeeFormProps)
         {/* Skills Section */}
         <FormSection title="Skills" description="Manage employee skills and certifications">
           <div className="space-y-4">
+            {/* Skills Validation Message */}
+            {watchedSkills.length === 0 && (
+              <div className="text-sm text-red-600 bg-red-50 p-2 rounded border">
+                At least one skill is required
+              </div>
+            )}
             {/* Add Skill Form */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg">
               <div>
@@ -452,6 +460,12 @@ export function EditEmployeeForm({ employee, onSuccess }: EditEmployeeFormProps)
         {/* Availability Section */}
         <FormSection title="Weekly Availability" description="Set employee availability for each day of the week">
           <div className="space-y-4">
+            {/* Availability Validation Message */}
+            {watchedAvailability.length === 0 && (
+              <div className="text-sm text-red-600 bg-red-50 p-2 rounded border">
+                At least one availability window is required
+              </div>
+            )}
             {/* Add Availability Form */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border rounded-lg">
               <div>

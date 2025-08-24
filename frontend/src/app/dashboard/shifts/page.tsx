@@ -1,10 +1,19 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Plus, Edit, Trash2, Eye, MoreHorizontal, Users, Clock, MapPin } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useState } from "react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  MoreHorizontal,
+  Users,
+  Clock,
+  MapPin,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +21,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -20,16 +29,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { useShifts, useDeleteShift } from '@/hooks/use-shifts';
-import { Shift, ShiftType, ShiftStatus } from '@/types';
-import { CreateShiftForm } from '@/components/shifts/create-shift-form';
-import { EditShiftForm } from '@/components/shifts/edit-shift-form';
-import { ShiftDetailsDialog } from '@/components/shifts/shift-details-dialog';
-import { AssignEmployeesDialog } from '@/components/shifts/assign-employees-dialog';
-import { PageHeader } from '@/components/ui/page-header';
-import { StatsCards, StatCard } from '@/components/ui/stats-cards';
-import { DataTable, Column, FilterOption } from '@/components/ui/data-table';
+} from "@/components/ui/dialog";
+import { useShifts, useDeleteShift } from "@/hooks/use-shifts";
+import { Shift, ShiftType, ShiftStatus } from "@/types";
+import { CreateShiftForm } from "@/components/shifts/create-shift-form";
+import { EditShiftForm } from "@/components/shifts/edit-shift-form";
+import { ShiftDetailsDialog } from "@/components/shifts/shift-details-dialog";
+import { AssignEmployeesDialog } from "@/components/shifts/assign-employees-dialog";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatsCards, StatCard } from "@/components/ui/stats-cards";
+import { DataTable, Column, FilterOption } from "@/components/ui/data-table";
 
 export default function ShiftsPage() {
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
@@ -38,7 +47,11 @@ export default function ShiftsPage() {
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
 
-  const { data: shiftsData, isLoading, error } = useShifts({
+  const {
+    data: shiftsData,
+    isLoading,
+    error,
+  } = useShifts({
     page: 1,
     limit: 50,
   });
@@ -46,14 +59,14 @@ export default function ShiftsPage() {
   const deleteShiftMutation = useDeleteShift();
 
   const shifts = shiftsData?.data || [];
-  const totalShifts = shiftsData?.pagination?.totalItems || 0;
+  const totalShifts = shiftsData?.meta?.total || shifts.length;
 
   const handleDeleteShift = async (id: string) => {
-    if (confirm('Are you sure you want to delete this shift?')) {
+    if (confirm("Are you sure you want to delete this shift?")) {
       try {
         await deleteShiftMutation.mutateAsync(id);
       } catch (error) {
-        console.error('Failed to delete shift:', error);
+        console.error("Failed to delete shift:", error);
       }
     }
   };
@@ -61,41 +74,33 @@ export default function ShiftsPage() {
   const getStatusBadgeVariant = (status: ShiftStatus) => {
     switch (status) {
       case ShiftStatus.SCHEDULED:
-        return 'default';
+        return "default";
       case ShiftStatus.IN_PROGRESS:
-        return 'secondary';
+        return "secondary";
       case ShiftStatus.COMPLETED:
-        return 'outline';
+        return "outline";
       case ShiftStatus.CANCELLED:
-        return 'destructive';
-      case ShiftStatus.PENDING_APPROVAL:
-        return 'destructive';
+        return "destructive";
       default:
-        return 'outline';
+        return "outline";
     }
   };
 
   const getTypeBadgeVariant = (type: ShiftType) => {
     switch (type) {
       case ShiftType.REGULAR:
-        return 'default';
+        return "default";
       case ShiftType.OVERTIME:
-        return 'secondary';
+        return "secondary";
       case ShiftType.HOLIDAY:
-        return 'destructive';
+        return "destructive";
       case ShiftType.WEEKEND:
-        return 'outline';
+        return "outline";
       case ShiftType.NIGHT:
-        return 'secondary';
-      case ShiftType.SPLIT:
-        return 'outline';
+        return "secondary";
       default:
-        return 'outline';
+        return "outline";
     }
-  };
-
-  const getInitials = (firstName: string, lastName: string) => {
-    return `${firstName[0]}${lastName[0]}`.toUpperCase();
   };
 
   const formatDate = (dateString: string) => {
@@ -105,23 +110,23 @@ export default function ShiftsPage() {
   // Stats data
   const stats: StatCard[] = [
     {
-      title: 'Total Shifts',
+      title: "Total Shifts",
       value: totalShifts,
       icon: Clock,
     },
     {
-      title: 'Scheduled',
-      value: shifts.filter(s => s.status === ShiftStatus.SCHEDULED).length,
+      title: "Scheduled",
+      value: shifts.filter((s) => s.status === ShiftStatus.SCHEDULED).length,
       icon: Clock,
     },
     {
-      title: 'In Progress',
-      value: shifts.filter(s => s.status === ShiftStatus.IN_PROGRESS).length,
+      title: "In Progress",
+      value: shifts.filter((s) => s.status === ShiftStatus.IN_PROGRESS).length,
       icon: Clock,
     },
     {
-      title: 'Completed',
-      value: shifts.filter(s => s.status === ShiftStatus.COMPLETED).length,
+      title: "Completed",
+      value: shifts.filter((s) => s.status === ShiftStatus.COMPLETED).length,
       icon: Clock,
     },
   ];
@@ -129,45 +134,45 @@ export default function ShiftsPage() {
   // Filter options
   const filters: FilterOption[] = [
     {
-      key: 'type',
-      label: 'Type',
+      key: "type",
+      label: "Type",
       options: [
-        { value: 'regular', label: 'Regular' },
-        { value: 'overtime', label: 'Overtime' },
-        { value: 'holiday', label: 'Holiday' },
-        { value: 'weekend', label: 'Weekend' },
-        { value: 'night', label: 'Night' },
-        { value: 'split', label: 'Split' },
+        { value: "regular", label: "Regular" },
+        { value: "overtime", label: "Overtime" },
+        { value: "holiday", label: "Holiday" },
+        { value: "weekend", label: "Weekend" },
+        { value: "night", label: "Night" },
+        { value: "split", label: "Split" },
       ],
     },
     {
-      key: 'status',
-      label: 'Status',
+      key: "status",
+      label: "Status",
       options: [
-        { value: 'scheduled', label: 'Scheduled' },
-        { value: 'in_progress', label: 'In Progress' },
-        { value: 'completed', label: 'Completed' },
-        { value: 'cancelled', label: 'Cancelled' },
-        { value: 'pending_approval', label: 'Pending Approval' },
+        { value: "scheduled", label: "Scheduled" },
+        { value: "in_progress", label: "In Progress" },
+        { value: "completed", label: "Completed" },
+        { value: "cancelled", label: "Cancelled" },
+        { value: "pending_approval", label: "Pending Approval" },
       ],
     },
     {
-      key: 'department',
-      label: 'Department',
+      key: "department",
+      label: "Department",
       options: [
-        { value: 'Engineering', label: 'Engineering' },
-        { value: 'Sales', label: 'Sales' },
-        { value: 'Marketing', label: 'Marketing' },
-        { value: 'Operations', label: 'Operations' },
+        { value: "Engineering", label: "Engineering" },
+        { value: "Sales", label: "Sales" },
+        { value: "Marketing", label: "Marketing" },
+        { value: "Operations", label: "Operations" },
       ],
     },
     {
-      key: 'location',
-      label: 'Location',
+      key: "location",
+      label: "Location",
       options: [
-        { value: 'Location A', label: 'Location A' },
-        { value: 'Location B', label: 'Location B' },
-        { value: 'Location C', label: 'Location C' },
+        { value: "Location A", label: "Location A" },
+        { value: "Location B", label: "Location B" },
+        { value: "Location C", label: "Location C" },
       ],
     },
   ];
@@ -175,8 +180,8 @@ export default function ShiftsPage() {
   // Table columns
   const columns: Column<Shift>[] = [
     {
-      key: 'shift',
-      header: 'Shift',
+      key: "shift",
+      header: "Shift",
       render: (shift) => (
         <div className="space-y-1">
           <div className="font-medium">{shift.title}</div>
@@ -185,8 +190,8 @@ export default function ShiftsPage() {
       ),
     },
     {
-      key: 'dateTime',
-      header: 'Date & Time',
+      key: "dateTime",
+      header: "Date & Time",
       render: (shift) => (
         <div className="space-y-1">
           <div className="text-sm">{formatDate(shift.date)}</div>
@@ -197,8 +202,8 @@ export default function ShiftsPage() {
       ),
     },
     {
-      key: 'type',
-      header: 'Type',
+      key: "type",
+      header: "Type",
       render: (shift) => (
         <Badge variant={getTypeBadgeVariant(shift.type)}>
           {shift.type.charAt(0).toUpperCase() + shift.type.slice(1)}
@@ -206,17 +211,17 @@ export default function ShiftsPage() {
       ),
     },
     {
-      key: 'status',
-      header: 'Status',
+      key: "status",
+      header: "Status",
       render: (shift) => (
         <Badge variant={getStatusBadgeVariant(shift.status)}>
-          {shift.status.replace('_', ' ')}
+          {shift.status.replace("_", " ")}
         </Badge>
       ),
     },
     {
-      key: 'location',
-      header: 'Location',
+      key: "location",
+      header: "Location",
       render: (shift) => (
         <div className="flex items-center space-x-2">
           <MapPin className="h-4 w-4 text-gray-400" />
@@ -225,24 +230,26 @@ export default function ShiftsPage() {
       ),
     },
     {
-      key: 'department',
-      header: 'Department',
+      key: "department",
+      header: "Department",
       render: (shift) => shift.department,
     },
     {
-      key: 'assigned',
-      header: 'Assigned',
+      key: "assigned",
+      header: "Assigned",
       render: (shift) => (
         <div className="flex items-center space-x-2">
           <Users className="h-4 w-4 text-gray-400" />
-          <span className="text-sm">{shift.assignedEmployees?.length || 0}</span>
+          <span className="text-sm">
+            {shift.assignedEmployees?.length || 0}
+          </span>
         </div>
       ),
     },
     {
-      key: 'actions',
-      header: 'Actions',
-      width: '120px',
+      key: "actions",
+      header: "Actions",
+      width: "120px",
       render: (shift) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -252,24 +259,30 @@ export default function ShiftsPage() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => {
-              setSelectedShift(shift);
-              setIsDetailsDialogOpen(true);
-            }}>
+            <DropdownMenuItem
+              onClick={() => {
+                setSelectedShift(shift);
+                setIsDetailsDialogOpen(true);
+              }}
+            >
               <Eye className="mr-2 h-4 w-4" />
               View Details
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => {
-              setSelectedShift(shift);
-              setIsAssignDialogOpen(true);
-            }}>
+            <DropdownMenuItem
+              onClick={() => {
+                setSelectedShift(shift);
+                setIsAssignDialogOpen(true);
+              }}
+            >
               <Users className="mr-2 h-4 w-4" />
               Assign Employees
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => {
-              setSelectedShift(shift);
-              setIsEditDialogOpen(true);
-            }}>
+            <DropdownMenuItem
+              onClick={() => {
+                setSelectedShift(shift);
+                setIsEditDialogOpen(true);
+              }}
+            >
               <Edit className="mr-2 h-4 w-4" />
               Edit
             </DropdownMenuItem>
@@ -304,7 +317,10 @@ export default function ShiftsPage() {
         title="Shifts"
         description="Manage work shifts and employee assignments"
         actions={
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <Dialog
+            open={isCreateDialogOpen}
+            onOpenChange={setIsCreateDialogOpen}
+          >
             <DialogTrigger asChild>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
@@ -330,16 +346,16 @@ export default function ShiftsPage() {
       {/* Shifts Table */}
       <DataTable
         title="Shift List"
-        description={`${shifts.length} shifts found`}
+        description={`${totalShifts} shifts found`}
         data={shifts}
         columns={columns}
         filters={filters}
         searchPlaceholder="Search shifts..."
         isLoading={isLoading}
         emptyMessage="No shifts found"
-        onSearch={(query) => console.log('Search:', query)}
-        onFilterChange={(key, value) => console.log('Filter:', key, value)}
-        onExport={() => console.log('Export shifts')}
+        onSearch={(query) => console.log("Search:", query)}
+        onFilterChange={(key, value) => console.log("Filter:", key, value)}
+        onExport={() => console.log("Export shifts")}
       />
 
       {/* Dialogs */}
@@ -349,18 +365,19 @@ export default function ShiftsPage() {
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Edit Shift</DialogTitle>
-                <DialogDescription>
-                  Update shift information
-                </DialogDescription>
+                <DialogDescription>Update shift information</DialogDescription>
               </DialogHeader>
-              <EditShiftForm 
-                shift={selectedShift} 
-                onSuccess={() => setIsEditDialogOpen(false)} 
+              <EditShiftForm
+                shift={selectedShift}
+                onSuccess={() => setIsEditDialogOpen(false)}
               />
             </DialogContent>
           </Dialog>
 
-          <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
+          <Dialog
+            open={isAssignDialogOpen}
+            onOpenChange={setIsAssignDialogOpen}
+          >
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Assign Employees to Shift</DialogTitle>
@@ -384,4 +401,4 @@ export default function ShiftsPage() {
       )}
     </div>
   );
-} 
+}

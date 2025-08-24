@@ -189,8 +189,18 @@ export class ShiftsService {
     return response.data;
   }
 
+  static async assignEmployee(shiftId: string, employeeId: string): Promise<Shift> {
+    const response = await api.post<Shift>(`/shifts/${shiftId}/assign`, { employeeIds: [employeeId] });
+    return response.data;
+  }
+
   static async unassignEmployees(shiftId: string, employeeIds: string[]): Promise<Shift> {
     const response = await api.post<Shift>(`/shifts/${shiftId}/unassign`, { employeeIds });
+    return response.data;
+  }
+
+  static async unassignEmployee(shiftId: string, employeeId: string): Promise<Shift> {
+    const response = await api.post<Shift>(`/shifts/${shiftId}/unassign`, { employeeIds: [employeeId] });
     return response.data;
   }
 

@@ -62,18 +62,18 @@ export function CreateScheduleForm({ onSuccess }: CreateScheduleFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         {/* Basic Information */}
-        <FormSection title="Basic Information">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormSection title="Basic Information" description="Enter the basic details for the schedule">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={control}
               name="scheduleId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Schedule ID *</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-700">Schedule ID *</FormLabel>
                   <FormControl>
-                    <Input placeholder="SCHED001" {...field} />
+                    <Input placeholder="SCH001" {...field} className="mt-2" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -85,9 +85,9 @@ export function CreateScheduleForm({ onSuccess }: CreateScheduleFormProps) {
               name="date"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Date *</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-700">Date *</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Input type="date" {...field} className="mt-2" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -99,9 +99,9 @@ export function CreateScheduleForm({ onSuccess }: CreateScheduleFormProps) {
               name="location"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Location *</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-700">Location *</FormLabel>
                   <FormControl>
-                    <Input placeholder="Main Office" {...field} />
+                    <Input placeholder="Main Office - Floor 3" {...field} className="mt-2" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -113,9 +113,9 @@ export function CreateScheduleForm({ onSuccess }: CreateScheduleFormProps) {
               name="team"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Team *</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-700">Team *</FormLabel>
                   <FormControl>
-                    <Input placeholder="Engineering Team" {...field} />
+                    <Input placeholder="Frontend Development Team" {...field} className="mt-2" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -127,9 +127,9 @@ export function CreateScheduleForm({ onSuccess }: CreateScheduleFormProps) {
               name="department"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Department *</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-700">Department *</FormLabel>
                   <FormControl>
-                    <Input placeholder="Engineering" {...field} />
+                    <Input placeholder="Engineering" {...field} className="mt-2" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -141,17 +141,17 @@ export function CreateScheduleForm({ onSuccess }: CreateScheduleFormProps) {
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Status</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-700">Status</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
+                      <SelectTrigger className="mt-2">
+                        <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {Object.values(ScheduleStatus).map((status) => (
                         <SelectItem key={status} value={status}>
-                          {status.charAt(0).toUpperCase() + status.slice(1)}
+                          {status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -165,8 +165,8 @@ export function CreateScheduleForm({ onSuccess }: CreateScheduleFormProps) {
 
         {/* Shifts */}
         <FormSection title="Shifts" description="Add shifts to this schedule">
-          <div className="space-y-4">
-            <div className="flex space-x-2">
+          <div className="space-y-6">
+            <div className="flex space-x-3">
               <Input
                 value={newShift}
                 onChange={(e) => setNewShift(e.target.value)}
@@ -197,17 +197,19 @@ export function CreateScheduleForm({ onSuccess }: CreateScheduleFormProps) {
         </FormSection>
 
         {/* Notes */}
-        <FormSection title="Notes">
+        <FormSection title="Notes" description="Additional information about the schedule">
           <FormField
             control={control}
             name="notes"
             render={({ field }) => (
               <FormItem>
+                <FormLabel className="text-sm font-medium text-gray-700">Additional Notes</FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder="Additional notes about this schedule"
-                    rows={3}
+                    rows={4}
                     {...field}
+                    className="mt-2"
                   />
                 </FormControl>
                 <FormMessage />
@@ -217,11 +219,11 @@ export function CreateScheduleForm({ onSuccess }: CreateScheduleFormProps) {
         </FormSection>
 
         {/* Submit Button */}
-        <div className="flex justify-end space-x-4">
-          <Button type="button" variant="outline" onClick={onSuccess}>
+        <div className="flex justify-end space-x-4 pt-6 border-t">
+          <Button type="button" variant="outline" onClick={onSuccess} className="px-6">
             Cancel
           </Button>
-          <Button type="submit" disabled={createScheduleMutation.isPending}>
+          <Button type="submit" disabled={createScheduleMutation.isPending} className="px-8">
             {createScheduleMutation.isPending ? 'Creating...' : 'Create Schedule'}
           </Button>
         </div>

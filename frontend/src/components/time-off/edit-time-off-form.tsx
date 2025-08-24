@@ -30,7 +30,7 @@ export function EditTimeOffForm({ timeOff, onSuccess }: EditTimeOffFormProps) {
     resolver: zodResolver(updateTimeOffSchema),
     defaultValues: {
       requestId: timeOff.requestId,
-      employeeId: timeOff.employeeId,
+      employeeId: typeof timeOff.employeeId === 'string' ? timeOff.employeeId : timeOff.employeeId.email,
       type: timeOff.type,
       priority: timeOff.priority,
       startDate: timeOff.startDate,
@@ -45,6 +45,8 @@ export function EditTimeOffForm({ timeOff, onSuccess }: EditTimeOffFormProps) {
       isEmergency: timeOff.isEmergency,
       requiresCoverage: timeOff.requiresCoverage,
       coverageEmployees: timeOff.coverageEmployees || [],
+      affectedShifts: timeOff.affectedShifts || [],
+      attachments: timeOff.attachments || [],
       notes: timeOff.notes || '',
     },
   });
@@ -384,6 +386,88 @@ export function EditTimeOffForm({ timeOff, onSuccess }: EditTimeOffFormProps) {
             </div>
           </FormSection>
         )}
+
+        {/* Attachments */}
+        <FormSection title="Attachments" description="Add supporting documents or files">
+          <div className="space-y-4">
+            <div className="flex space-x-2">
+              <Input
+                placeholder="File URL or path (e.g., https://example.com/document.pdf)"
+                onChange={(e) => {
+                  const currentAttachments = watch('attachments') || [];
+                  if (e.target.value.trim()) {
+                    setValue('attachments', [...currentAttachments, e.target.value.trim()]);
+                    e.target.value = '';
+                  }
+                }}
+              />
+              <Button type="button" onClick={() => {}}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add
+              </Button>
+            </div>
+            {(watch('attachments') || []).length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {(watch('attachments') || []).map((attachment, index) => (
+                  <Badge key={index} variant="outline" className="flex items-center space-x-1">
+                    <span className="truncate max-w-xs">{attachment}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const currentAttachments = watch('attachments') || [];
+                        setValue('attachments', currentAttachments.filter((_, i) => i !== index));
+                      }}
+                      className="ml-1 hover:text-red-600"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+        </FormSection>
+
+        {/* Affected Shifts */}
+        <FormSection title="Affected Shifts" description="Shifts that will be affected by this time-off request">
+          <div className="space-y-4">
+            <div className="flex space-x-2">
+              <Input
+                placeholder="Shift ID (e.g., SHIFT001)"
+                onChange={(e) => {
+                  const currentShifts = watch('affectedShifts') || [];
+                  if (e.target.value.trim()) {
+                    setValue('affectedShifts', [...currentShifts, e.target.value.trim()]);
+                    e.target.value = '';
+                  }
+                }}
+              />
+              <Button type="button" onClick={() => {}}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add
+              </Button>
+            </div>
+            {(watch('affectedShifts') || []).length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {(watch('affectedShifts') || []).map((shift, index) => (
+                  <Badge key={index} variant="outline" className="flex items-center space-x-1">
+                    <span>{shift}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const currentShifts = watch('affectedShifts') || [];
+                        setValue('affectedShifts', currentShifts.filter((_, i) => i !== index));
+                      }}
+                      className="ml-1 hover:text-red-600"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+        </FormSection>
 
         {/* Reason and Description */}
         <FormSection title="Reason and Description">

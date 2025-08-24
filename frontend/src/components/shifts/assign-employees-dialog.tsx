@@ -58,13 +58,29 @@ export function AssignEmployeesDialog({ shift, onSuccess }: AssignEmployeesDialo
 
   const handleAssignEmployees = async () => {
     try {
+      // Check if shift status allows assignment
+      if (shift.status !== 'scheduled') {
+        alert(`Cannot assign employees to shift with status '${shift.status}'. Only shifts with status 'scheduled' can have employees assigned.`);
+        return;
+      }
+
       for (const employeeId of selectedEmployees) {
         await assignEmployeeMutation.mutateAsync({ shiftId: shift._id, employeeId });
       }
       setSelectedEmployees([]);
       onSuccess();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Failed to assign employees:', error);
+      
+      // Show more specific error message
+      let errorMessage = 'Failed to assign employees';
+      if (error && typeof error === 'object' && 'response' in error && error.response && typeof error.response === 'object' && 'data' in error.response && error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
+        errorMessage = String(error.response.data.message);
+      } else if (error && typeof error === 'object' && 'message' in error) {
+        errorMessage = String(error.message);
+      }
+      
+      alert(`Error: ${errorMessage}`);
     }
   };
 
@@ -107,7 +123,22 @@ export function AssignEmployeesDialog({ shift, onSuccess }: AssignEmployeesDialo
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-full overflow-hidden">
+      {/* Status Warning */}
+      {shift.status !== 'scheduled' && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center space-x-2">
+            <div className="text-red-600 text-lg">⚠️</div>
+            <div>
+              <h3 className="text-sm font-medium text-red-800">Cannot Assign Employees</h3>
+              <p className="text-sm text-red-700">
+                This shift has status &apos;{shift.status}&apos;. Only shifts with status &apos;scheduled&apos; can have employees assigned.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Shift Information */}
       <Card>
         <CardHeader>
@@ -120,7 +151,7 @@ export function AssignEmployeesDialog({ shift, onSuccess }: AssignEmployeesDialo
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label className="text-sm font-medium text-gray-500">Title</Label>
-              <p className="text-sm font-medium">{shift.title}</p>
+              <p className="text-sm font-medium break-words">{shift.title}</p>
             </div>
             <div>
               <Label className="text-sm font-medium text-gray-500">Date</Label>
@@ -132,7 +163,15 @@ export function AssignEmployeesDialog({ shift, onSuccess }: AssignEmployeesDialo
             </div>
             <div>
               <Label className="text-sm font-medium text-gray-500">Location</Label>
-              <p className="text-sm">{shift.location.name}</p>
+              <p className="text-sm break-words">{shift.location.name}</p>
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-500">Status</Label>
+              <p className="text-sm font-medium">{shift.status}</p>
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-500">Department</Label>
+              <p className="text-sm">{shift.department}</p>
             </div>
           </div>
         </CardContent>
@@ -150,21 +189,21 @@ export function AssignEmployeesDialog({ shift, onSuccess }: AssignEmployeesDialo
           {assignedEmployees.length > 0 ? (
             <div className="space-y-3">
               {assignedEmployees.map((employee) => (
-                <div key={employee._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <Avatar className="h-8 w-8">
+                <div key={employee._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg min-w-0">
+                  <div className="flex items-center space-x-3 min-w-0 flex-1">
+                    <Avatar className="h-8 w-8 flex-shrink-0">
                       <AvatarFallback className="bg-blue-100 text-blue-600">
                         {getInitials(employee.firstName, employee.lastName)}
                       </AvatarFallback>
                     </Avatar>
-                    <div>
-                      <div className="font-medium">
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium truncate">
                         {employee.firstName} {employee.lastName}
                       </div>
-                      <div className="text-sm text-gray-500">{employee.email}</div>
+                      <div className="text-sm text-gray-500 truncate">{employee.email}</div>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-3 flex-shrink-0">
                     <Badge variant={getRoleBadgeVariant(employee.role)}>
                       {employee.role}
                     </Badge>
@@ -231,26 +270,26 @@ export function AssignEmployeesDialog({ shift, onSuccess }: AssignEmployeesDialo
           {/* Employee List */}
           <div className="space-y-2 max-h-64 overflow-y-auto">
             {availableEmployees.map((employee) => (
-              <div key={employee._id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
-                                 <input
-                   type="checkbox"
-                   id={employee._id}
-                   checked={selectedEmployees.includes(employee._id)}
-                   onChange={() => toggleEmployeeSelection(employee._id)}
-                   className="rounded border-gray-300"
-                 />
-                <Avatar className="h-8 w-8">
+              <div key={employee._id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 min-w-0">
+                <input
+                  type="checkbox"
+                  id={employee._id}
+                  checked={selectedEmployees.includes(employee._id)}
+                  onChange={() => toggleEmployeeSelection(employee._id)}
+                  className="rounded border-gray-300 flex-shrink-0"
+                />
+                <Avatar className="h-8 w-8 flex-shrink-0">
                   <AvatarFallback className="bg-gray-100 text-gray-600">
                     {getInitials(employee.firstName, employee.lastName)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1">
-                  <div className="font-medium">
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium truncate">
                     {employee.firstName} {employee.lastName}
                   </div>
-                  <div className="text-sm text-gray-500">{employee.email}</div>
+                  <div className="text-sm text-gray-500 truncate">{employee.email}</div>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 flex-shrink-0">
                   <Badge variant={getRoleBadgeVariant(employee.role)}>
                     {employee.role}
                   </Badge>
@@ -266,16 +305,22 @@ export function AssignEmployeesDialog({ shift, onSuccess }: AssignEmployeesDialo
           {/* Assign Button */}
           {selectedEmployees.length > 0 && (
             <div className="flex justify-end pt-4 border-t">
-              <Button
-                onClick={handleAssignEmployees}
-                disabled={assignEmployeeMutation.isPending}
-                className="flex items-center space-x-2"
-              >
-                <Users className="h-4 w-4" />
-                <span>
-                  Assign {selectedEmployees.length} Employee{selectedEmployees.length !== 1 ? 's' : ''}
-                </span>
-              </Button>
+              {shift.status !== 'scheduled' ? (
+                <div className="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200">
+                  ⚠️ Cannot assign employees to shift with status &apos;{shift.status}&apos;. Only shifts with status &apos;scheduled&apos; can have employees assigned.
+                </div>
+              ) : (
+                <Button
+                  onClick={handleAssignEmployees}
+                  disabled={assignEmployeeMutation.isPending}
+                  className="flex items-center space-x-2"
+                >
+                  <Users className="h-4 w-4" />
+                  <span>
+                    Assign {selectedEmployees.length} Employee{selectedEmployees.length !== 1 ? 's' : ''}
+                  </span>
+                </Button>
+              )}
             </div>
           )}
         </CardContent>
@@ -296,14 +341,14 @@ export function AssignEmployeesDialog({ shift, onSuccess }: AssignEmployeesDialo
                 const isMet = assignedCount >= requirement.quantity;
                 
                 return (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <div className="font-medium">{requirement.role}</div>
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg min-w-0">
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium truncate">{requirement.role}</div>
                       <div className="text-sm text-gray-500">
                         Required: {requirement.quantity} • Assigned: {assignedCount}
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 flex-shrink-0">
                       {isMet ? (
                         <Badge variant="default" className="flex items-center space-x-1">
                           <CheckCircle className="h-3 w-3" />

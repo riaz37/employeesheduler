@@ -45,7 +45,7 @@ export function EmployeesList() {
   const deleteEmployeeMutation = useDeleteEmployee();
 
   const employees = employeesData?.data || [];
-  const totalEmployees = employeesData?.pagination?.totalItems || 0;
+  const totalEmployees = employeesData?.meta?.total || employees.length;
 
   const handleDeleteEmployee = async (id: string) => {
     if (confirm('Are you sure you want to delete this employee?')) {
@@ -307,7 +307,7 @@ export function EmployeesList() {
       {/* Employees Table */}
       <DataTable
         title="Employee List"
-        description={`${employees.length} employees found`}
+        description={`${totalEmployees} employees found`}
         data={employees}
         columns={columns}
         filters={filters}

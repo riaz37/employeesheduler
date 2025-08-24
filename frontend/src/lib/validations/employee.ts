@@ -35,12 +35,14 @@ export const createEmployeeSchema = z.object({
   location: z.string().min(1, 'Location is required'),
   team: z.string().min(1, 'Team is required'),
   hireDate: z.string().min(1, 'Hire date is required'),
-  phone: z.string().optional(),
+  phone: z.string().optional().refine((val) => !val || /^\+[1-9]\d{1,14}$/.test(val), {
+    message: 'Phone must be in international format (+1-555-123-4567)'
+  }),
   emergencyContact: z.string().optional(),
   notes: z.string().optional(),
   isPartTime: z.boolean(),
-  skills: z.array(employeeSkillSchema).default([]),
-  availabilityWindows: z.array(availabilityWindowSchema).default([]),
+  skills: z.array(employeeSkillSchema).min(1, 'At least one skill is required'),
+  availabilityWindows: z.array(availabilityWindowSchema).min(1, 'At least one availability window is required'),
   workPreference: workPreferenceSchema,
 });
 

@@ -48,7 +48,7 @@ export default function TimeOffPage() {
   const rejectTimeOffMutation = useRejectTimeOff();
 
   const timeOffRequests = timeOffData?.data || [];
-  const totalRequests = timeOffData?.pagination?.totalItems || 0;
+  const totalRequests = timeOffData?.meta?.total || timeOffRequests.length;
 
   const handleDeleteTimeOff = async (id: string) => {
     if (confirm('Are you sure you want to delete this time-off request?')) {
@@ -377,7 +377,7 @@ export default function TimeOffPage() {
       {/* Time-Off Requests Table */}
       <DataTable
         title="Time-Off Requests"
-        description={`${timeOffRequests.length} requests found`}
+        description={`${totalRequests} requests found`}
         data={timeOffRequests}
         columns={columns}
         filters={filters}

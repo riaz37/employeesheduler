@@ -4,19 +4,18 @@ import { ShiftType, ShiftStatus } from '@/types';
 export const locationSchema = z.object({
   name: z.string().min(1, 'Location name is required'),
   address: z.string().min(1, 'Address is required'),
-  coordinates: z.object({
-    latitude: z.number(),
-    longitude: z.number(),
-  }).optional(),
-  timezone: z.string().min(1, 'Timezone is required'),
+  coordinates: z.array(z.number()).length(2, 'Coordinates must be [longitude, latitude]'),
+  building: z.string().optional(),
+  floor: z.string().optional(),
+  room: z.string().optional(),
 });
 
 export const requirementSchema = z.object({
   role: z.string().min(1, 'Role is required'),
-  skillRequirements: z.array(z.string()).min(1, 'At least one skill is required'),
-  minExperience: z.number().min(0),
-  certificationRequired: z.boolean(),
-  quantity: z.number().min(1),
+  quantity: z.number().min(1, 'Quantity must be at least 1'),
+  skills: z.array(z.string()).min(1, 'At least one skill is required'),
+  description: z.string().optional(),
+  isCritical: z.boolean().optional(),
 });
 
 export const createShiftSchema = z.object({
@@ -28,23 +27,10 @@ export const createShiftSchema = z.object({
   status: z.nativeEnum(ShiftStatus).optional(),
   title: z.string().min(5, 'Title must be at least 5 characters'),
   description: z.string().optional(),
-  location: z.object({
-    name: z.string().min(2, 'Location name must be at least 2 characters'),
-    address: z.string().min(10, 'Address must be at least 10 characters'),
-    coordinates: z.array(z.number()).length(2, 'Coordinates must be [longitude, latitude]'),
-    building: z.string().optional(),
-    floor: z.string().optional(),
-    room: z.string().optional(),
-  }),
+  location: locationSchema,
   department: z.string().min(2, 'Department must be at least 2 characters'),
   team: z.string().min(2, 'Team must be at least 2 characters'),
-  requirements: z.array(z.object({
-    role: z.string().min(2, 'Role must be at least 2 characters'),
-    quantity: z.number().min(1, 'Quantity must be at least 1'),
-    skills: z.array(z.string()).min(1, 'At least one skill is required'),
-    description: z.string().optional(),
-    isCritical: z.boolean().optional(),
-  })).min(1, 'At least one requirement is needed'),
+  requirements: z.array(requirementSchema).min(1, 'At least one requirement is needed'),
   assignedEmployees: z.array(z.string()).optional(),
   backupEmployees: z.array(z.string()).optional(),
   totalHours: z.number().min(0.5, 'Total hours must be at least 0.5'),

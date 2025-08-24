@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { EmployeesService, CreateEmployeeRequest, UpdateEmployeeRequest, EmployeeFilters } from '@/services/employees.service';
-import { Employee, PaginationParams } from '@/types';
+import { Employee, PaginationParams, EmployeeRole } from '@/types';
 
 export const useEmployees = (filters?: EmployeeFilters) => {
   return useQuery({
@@ -80,7 +80,7 @@ export const useEmployeesByDepartment = (department: string, params?: Pagination
 export const useEmployeesByRole = (role: string, params?: PaginationParams) => {
   return useQuery({
     queryKey: ['employees', 'role', role, params],
-    queryFn: () => EmployeesService.getEmployeesByRole(role, params),
+    queryFn: () => EmployeesService.getEmployeesByRole(role as EmployeeRole, params),
     enabled: !!role,
   });
 };

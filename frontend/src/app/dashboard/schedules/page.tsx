@@ -45,7 +45,7 @@ export default function SchedulesPage() {
   const lockScheduleMutation = useLockSchedule();
 
   const schedules = schedulesData?.data || [];
-  const totalSchedules = schedulesData?.pagination?.totalItems || 0;
+  const totalSchedules = schedulesData?.meta?.total || schedules.length;
 
   const handleDeleteSchedule = async (id: string) => {
     if (confirm('Are you sure you want to delete this schedule?')) {
@@ -321,7 +321,7 @@ export default function SchedulesPage() {
       {/* Schedules Table */}
       <DataTable
         title="Schedule List"
-        description={`${schedules.length} schedules found`}
+        description={`${totalSchedules} schedules found`}
         data={schedules}
         columns={columns}
         filters={filters}

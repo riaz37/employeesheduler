@@ -84,7 +84,7 @@ export class Employee extends Document {
   @Prop({ required: true, type: String, select: false })
   password: string;
 
-  @Prop({ required: true, type: String })
+  @Prop({ type: String })
   phone?: string;
 
   @Prop({ required: true, enum: EmployeeRole })
@@ -111,7 +111,7 @@ export class Employee extends Document {
   @Prop({ required: true, type: WorkPreference })
   workPreference: WorkPreference;
 
-  @Prop({ type: Date })
+  @Prop({ required: true, type: Date })
   hireDate: Date;
 
   @Prop({ type: Date })

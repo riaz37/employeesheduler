@@ -24,10 +24,10 @@ interface EditShiftFormProps {
 export function EditShiftForm({ shift, onSuccess }: EditShiftFormProps) {
   const [newRequirement, setNewRequirement] = useState({
     role: '',
-    skillRequirements: [''],
-    minExperience: 0,
-    certificationRequired: false,
+    skills: [''],
     quantity: 1,
+    description: '',
+    isCritical: false,
   });
   const [newTag, setNewTag] = useState('');
 
@@ -55,19 +55,11 @@ export function EditShiftForm({ shift, onSuccess }: EditShiftFormProps) {
       isRecurring: shift.isRecurring || false,
       recurringPattern: shift.recurringPattern || '',
       recurringEndDate: shift.recurringEndDate || '',
-      parentShiftId: shift.parentShiftId || '',
-      childShiftIds: shift.childShiftIds || [],
+
       priority: shift.priority || 0,
       tags: shift.tags || [],
       notes: shift.notes || '',
-      scheduledAt: shift.scheduledAt || '',
-      scheduledBy: shift.scheduledBy || '',
-      startedAt: shift.startedAt || '',
-      completedAt: shift.completedAt || '',
-      cancelledAt: shift.cancelledAt || '',
-      cancelledBy: shift.cancelledBy || '',
-      cancellationReason: shift.cancellationReason || '',
-      lastModifiedAt: shift.lastModifiedAt || '',
+
     },
   });
 
@@ -78,15 +70,15 @@ export function EditShiftForm({ shift, onSuccess }: EditShiftFormProps) {
   const isRecurring = watch('isRecurring');
 
   const addRequirement = () => {
-    if (newRequirement.role.trim() && newRequirement.skillRequirements[0].trim()) {
+    if (newRequirement.role.trim() && newRequirement.skills[0].trim()) {
       const currentRequirements = watch('requirements') || [];
       setValue('requirements', [...currentRequirements, { ...newRequirement }]);
       setNewRequirement({
         role: '',
-        skillRequirements: [''],
-        minExperience: 0,
-        certificationRequired: false,
+        skills: [''],
         quantity: 1,
+        description: '',
+        isCritical: false,
       });
     }
   };
@@ -303,6 +295,47 @@ export function EditShiftForm({ shift, onSuccess }: EditShiftFormProps) {
               )}
             />
 
+            {isRecurring && (
+              <>
+                <FormField
+                  control={control}
+                  name="recurringPattern"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Recurring Pattern</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select pattern" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="daily">Daily</SelectItem>
+                          <SelectItem value="weekly">Weekly</SelectItem>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={control}
+                  name="recurringEndDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Recurring End Date</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
+
             <FormField
               control={control}
               name="description"
@@ -320,12 +353,44 @@ export function EditShiftForm({ shift, onSuccess }: EditShiftFormProps) {
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={control}
+              name="scheduledBy"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Scheduled By</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Manager ID or name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem className="md:col-span-2">
+                  <FormLabel>Notes</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Additional notes about the shift"
+                      rows={3}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
         </FormSection>
 
         {/* Location Information */}
         <FormSection title="Location Information">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormField
               control={control}
               name="location.name"
@@ -356,12 +421,66 @@ export function EditShiftForm({ shift, onSuccess }: EditShiftFormProps) {
 
             <FormField
               control={control}
-              name="location.timezone"
+              name="location.building"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Timezone *</FormLabel>
+                  <FormLabel>Building</FormLabel>
                   <FormControl>
-                    <Input placeholder="UTC" {...field} />
+                    <Input placeholder="Building A" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={control}
+              name="location.floor"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Floor</FormLabel>
+                  <FormControl>
+                    <Input placeholder="2nd Floor" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={control}
+              name="location.room"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Room</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Room 201" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={control}
+              name="location.coordinates"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Coordinates [longitude, latitude]</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="-73.935242, 40.730610" 
+                      value={Array.isArray(field.value) ? field.value.join(', ') : ''}
+                      onChange={(e) => {
+                        const coords = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
+                        if (coords.length === 2) {
+                          const [lng, lat] = coords.map(Number);
+                          if (!isNaN(lng) && !isNaN(lat)) {
+                            field.onChange([lng, lat]);
+                          }
+                        }
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -407,7 +526,7 @@ export function EditShiftForm({ shift, onSuccess }: EditShiftFormProps) {
         <FormSection title="Requirements" description="Manage the requirements for this shift">
           <div className="space-y-4">
             {/* Add Requirement Form */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 border rounded-lg">
               <div>
                 <label className="block text-sm font-medium mb-1">Role</label>
                 <Input
@@ -419,25 +538,12 @@ export function EditShiftForm({ shift, onSuccess }: EditShiftFormProps) {
               <div>
                 <label className="block text-sm font-medium mb-1">Skills</label>
                 <Input
-                  value={newRequirement.skillRequirements[0]}
+                  value={newRequirement.skills[0]}
                   onChange={(e) => setNewRequirement(prev => ({ 
                     ...prev, 
-                    skillRequirements: [e.target.value] 
+                    skills: [e.target.value] 
                   }))}
                   placeholder="e.g., JavaScript"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Min Experience</label>
-                <Input
-                  type="number"
-                  min="0"
-                  value={newRequirement.minExperience}
-                  onChange={(e) => setNewRequirement(prev => ({ 
-                    ...prev, 
-                    minExperience: Number(e.target.value) 
-                  }))}
-                  placeholder="0"
                 />
               </div>
               <div>
@@ -453,6 +559,28 @@ export function EditShiftForm({ shift, onSuccess }: EditShiftFormProps) {
                   placeholder="1"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Description</label>
+                <Input
+                  value={newRequirement.description}
+                  onChange={(e) => setNewRequirement(prev => ({ 
+                    ...prev, 
+                    description: e.target.value 
+                  }))}
+                  placeholder="e.g., Senior developer needed"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="isCritical"
+                  checked={newRequirement.isCritical}
+                  onCheckedChange={(checked) => setNewRequirement(prev => ({ 
+                    ...prev, 
+                    isCritical: checked as boolean 
+                  }))}
+                />
+                <label htmlFor="isCritical" className="text-sm font-medium">Critical</label>
+              </div>
               <div className="flex items-end">
                 <Button type="button" onClick={addRequirement} className="w-full">
                   <Plus className="mr-2 h-4 w-4" />
@@ -467,8 +595,10 @@ export function EditShiftForm({ shift, onSuccess }: EditShiftFormProps) {
                 {watchedRequirements.map((requirement, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <span>
-                      <strong>{requirement.role}</strong> • Skills: {requirement.skillRequirements.join(', ')} • 
-                      Experience: {requirement.minExperience}+ years • Quantity: {requirement.quantity}
+                      <strong>{requirement.role}</strong> • Skills: {requirement.skills?.join(', ') || 'None'} • 
+                      Quantity: {requirement.quantity}
+                      {requirement.description && ` • ${requirement.description}`}
+                      {requirement.isCritical && ' • Critical'}
                     </span>
                     <button
                       type="button"
@@ -481,6 +611,38 @@ export function EditShiftForm({ shift, onSuccess }: EditShiftFormProps) {
                 ))}
               </div>
             )}
+          </div>
+        </FormSection>
+
+        {/* Employee Assignments */}
+        <FormSection title="Employee Assignments">
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Assigned Employees</label>
+                <Textarea
+                  placeholder="Enter employee IDs separated by commas"
+                  value={watch('assignedEmployees')?.join(', ') || ''}
+                  onChange={(e) => {
+                    const employees = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
+                    setValue('assignedEmployees', employees);
+                  }}
+                  rows={3}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Backup Employees</label>
+                <Textarea
+                  placeholder="Enter backup employee IDs separated by commas"
+                  value={watch('backupEmployees')?.join(', ') || ''}
+                  onChange={(e) => {
+                    const employees = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
+                    setValue('backupEmployees', employees);
+                  }}
+                  rows={3}
+                />
+              </div>
+            </div>
           </div>
         </FormSection>
 

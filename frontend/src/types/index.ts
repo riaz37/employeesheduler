@@ -350,13 +350,13 @@ export interface PaginationParams {
 
 export interface PaginatedResponse<T> {
   data: T[];
-  pagination: {
-    currentPage: number;
+  meta: {
+    page: number;
+    limit: number;
+    total: number;
     totalPages: number;
-    totalItems: number;
-    itemsPerPage: number;
-    hasNext: boolean;
-    hasPrev: boolean;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
   };
 }
 

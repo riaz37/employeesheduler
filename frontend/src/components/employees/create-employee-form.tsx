@@ -75,7 +75,8 @@ export function CreateEmployeeForm({ onSuccess }: CreateEmployeeFormProps) {
 
   const removeSkill = (index: number) => {
     const currentSkills = watch('skills') || [];
-    setValue('skills', currentSkills.filter((_, i) => i !== index));
+    const updatedSkills = currentSkills.filter((_, i) => i !== index);
+    setValue('skills', updatedSkills);
   };
 
   const addAvailability = () => {
@@ -92,7 +93,8 @@ export function CreateEmployeeForm({ onSuccess }: CreateEmployeeFormProps) {
 
   const removeAvailability = (index: number) => {
     const currentAvailability = watch('availabilityWindows') || [];
-    setValue('availabilityWindows', currentAvailability.filter((_, i) => i !== index));
+    const updatedAvailability = currentAvailability.filter((_, i) => i !== index);
+    setValue('availabilityWindows', updatedAvailability);
   };
 
   const addPreferredShift = () => {
@@ -135,10 +137,10 @@ export function CreateEmployeeForm({ onSuccess }: CreateEmployeeFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Basic Information */}
-        <FormSection title="Basic Information">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                  {/* Basic Information */}
+          <FormSection title="Basic Information" description="Enter the employee's personal and contact details">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={control}
               name="employeeId"
@@ -387,6 +389,12 @@ export function CreateEmployeeForm({ onSuccess }: CreateEmployeeFormProps) {
         {/* Skills Section */}
         <FormSection title="Skills" description="Add employee skills and certifications">
           <div className="space-y-4">
+            {/* Skills Validation Message */}
+            {watchedSkills.length === 0 && (
+              <div className="text-sm text-red-600 bg-red-50 p-2 rounded border">
+                At least one skill is required
+              </div>
+            )}
             {/* Add Skill Form */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg">
               <div>
@@ -458,6 +466,12 @@ export function CreateEmployeeForm({ onSuccess }: CreateEmployeeFormProps) {
         {/* Availability Section */}
         <FormSection title="Availability" description="Set employee availability windows">
           <div className="space-y-4">
+            {/* Availability Validation Message */}
+            {watchedAvailability.length === 0 && (
+              <div className="text-sm text-red-600 bg-red-50 p-2 rounded border">
+                At least one availability window is required
+              </div>
+            )}
             {/* Add Availability Form */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border rounded-lg">
               <div>
@@ -656,11 +670,11 @@ export function CreateEmployeeForm({ onSuccess }: CreateEmployeeFormProps) {
         </FormSection>
 
         {/* Submit Button */}
-        <div className="flex justify-end space-x-4">
-          <Button type="button" variant="outline" onClick={onSuccess}>
+        <div className="flex justify-end space-x-4 pt-6 border-t">
+          <Button type="button" variant="outline" onClick={onSuccess} className="px-6">
             Cancel
           </Button>
-          <Button type="submit" disabled={createEmployeeMutation.isPending}>
+          <Button type="submit" disabled={createEmployeeMutation.isPending} className="px-8">
             {createEmployeeMutation.isPending ? 'Creating...' : 'Create Employee'}
           </Button>
         </div>
