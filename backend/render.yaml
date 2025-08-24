@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: employee-scheduler-backend
+    env: node
+    plan: starter
+    buildCommand: pnpm install && pnpm run build
+    startCommand: pnpm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 24h
+      - key: API_PREFIX
+        value: api/v1
+    healthCheckPath: /api/v1/health
+    autoDeploy: true 
