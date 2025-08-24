@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AnalyticsChart, ChartDataPoint, ChartSeries } from './analytics-chart';
+import { AnalyticsRealtime } from './analytics-realtime';
 import { 
   Users, 
   Clock, 
@@ -23,9 +24,13 @@ import {
   Zap,
   Shield,
   Building,
-  MapPin
+  MapPin,
+  UserCheck,
+  Users2,
+  MapPinIcon
 } from 'lucide-react';
-import { useDailyScheduleAnalytics, useWeeklyAnalytics, useMonthlyAnalytics, useConflictAnalysis, useCoverageOptimization } from '@/hooks/use-analytics';
+import { useAnalytics } from '@/hooks/use-analytics';
+import { useAnalyticsRefresh } from '@/hooks/use-analytics-refresh';
 
 interface AnalyticsDashboardProps {
   startDate: string;
@@ -33,9 +38,51 @@ interface AnalyticsDashboardProps {
   location?: string;
   team?: string;
   department?: string;
+  selectedEmployeeId?: string;
 }
 
-export function AnalyticsDashboard({ startDate, endDate, location, team, department }: AnalyticsDashboardProps) {
+export function AnalyticsDashboard({ 
+  startDate, 
+  endDate, 
+  location, 
+  team, 
+  department,
+  selectedEmployeeId 
+}: AnalyticsDashboardProps) {
+  // Get analytics hooks
+  const {
+    useDailyScheduleAnalytics,
+    useWeeklyAnalytics,
+    useMonthlyAnalytics,
+    useConflictAnalysis,
+    useCoverageOptimization,
+    useEmployeeWorkloadAnalytics,
+    useTeamPerformanceAnalytics,
+    useLocationUtilizationAnalytics,
+    useConflictsForDate,
+    useCoverageGaps,
+    useDashboardStats,
+    useRecentActivities,
+    useUpcomingShifts,
+    useAnalyticsSummary,
+    refreshAllAnalytics
+  } = useAnalytics();
+
+  // Auto-refresh analytics data every 30 seconds
+  const { 
+    isAutoRefreshEnabled, 
+    currentInterval, 
+    startAutoRefresh, 
+    stopAutoRefresh,
+    setRefreshInterval 
+  } = useAnalyticsRefresh({
+    enabled: true,
+    interval: 30000, // 30 seconds
+    onRefresh: () => {
+      console.log('Auto-refreshing analytics data...');
+    }
+  });
+
   // Fetch analytics data
   const dailyAnalytics = useDailyScheduleAnalytics(startDate, location, team, department);
   const weeklyAnalytics = useWeeklyAnalytics(startDate, location, team, department);
@@ -48,11 +95,53 @@ export function AnalyticsDashboard({ startDate, endDate, location, team, departm
   );
   const conflictAnalysis = useConflictAnalysis(startDate, endDate, location, team, department);
   const coverageOptimization = useCoverageOptimization(startDate, endDate, location, team, department);
+  
+  // New analytics hooks
+  const employeeWorkload = useEmployeeWorkloadAnalytics(
+    selectedEmployeeId || '',
+    startDate,
+    endDate
+  );
+  const teamPerformance = useTeamPerformanceAnalytics(
+    team || '',
+    startDate,
+    endDate,
+    location,
+    department
+  );
+  const locationUtilization = useLocationUtilizationAnalytics(
+    location || '',
+    startDate,
+    endDate,
+    team,
+    department
+  );
+  const conflictsForDate = useConflictsForDate(startDate, location);
+  const coverageGaps = useCoverageGaps(startDate, location);
+  const dashboardStats = useDashboardStats(startDate, location, team, department);
+  const recentActivities = useRecentActivities(startDate, location, team, department);
+  const upcomingShifts = useUpcomingShifts(startDate, location, team, department);
+  const analyticsSummary = useAnalyticsSummary(startDate, endDate, location, team, department);
+
+  // Track last update time
+  const [lastUpdateTime, setLastUpdateTime] = React.useState<Date>(new Date());
+
+  // Update timestamp when data refreshes
+  React.useEffect(() => {
+    setLastUpdateTime(new Date());
+  }, [dailyAnalytics.dataUpdatedAt, weeklyAnalytics.dataUpdatedAt, monthlyAnalytics.dataUpdatedAt]);
 
   const isLoading = dailyAnalytics.isLoading || weeklyAnalytics.isLoading || monthlyAnalytics.isLoading || 
-                   conflictAnalysis.isLoading || coverageOptimization.isLoading;
+                   conflictAnalysis.isLoading || coverageOptimization.isLoading ||
+                   employeeWorkload.isLoading || teamPerformance.isLoading || locationUtilization.isLoading ||
+                   conflictsForDate.isLoading || coverageGaps.isLoading || dashboardStats.isLoading ||
+                   recentActivities.isLoading || upcomingShifts.isLoading || analyticsSummary.isLoading;
+                   
   const error = dailyAnalytics.error || weeklyAnalytics.error || monthlyAnalytics.error || 
-                conflictAnalysis.error || coverageOptimization.error;
+                conflictAnalysis.error || coverageOptimization.error ||
+                employeeWorkload.error || teamPerformance.error || locationUtilization.error ||
+                conflictsForDate.error || coverageGaps.error || dashboardStats.error ||
+                recentActivities.error || upcomingShifts.error || analyticsSummary.error;
 
   // Transform data for charts
   const shiftCoverageData = useMemo(() => {
@@ -215,14 +304,70 @@ export function AnalyticsDashboard({ startDate, endDate, location, team, departm
       </div>
 
       {/* Analytics Tabs */}
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="coverage">Coverage</TabsTrigger>
-          <TabsTrigger value="conflicts">Conflicts</TabsTrigger>
-          <TabsTrigger value="trends">Trends</TabsTrigger>
-          <TabsTrigger value="optimization">Optimization</TabsTrigger>
-        </TabsList>
+      <div className="flex items-center justify-between mb-6">
+        <Tabs defaultValue="overview" className="space-y-6 flex-1">
+          <TabsList className="grid w-full grid-cols-9">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="coverage">Coverage</TabsTrigger>
+            <TabsTrigger value="conflicts">Conflicts</TabsTrigger>
+            <TabsTrigger value="trends">Trends</TabsTrigger>
+            <TabsTrigger value="workload">Workload</TabsTrigger>
+            <TabsTrigger value="performance">Performance</TabsTrigger>
+            <TabsTrigger value="locations">Locations</TabsTrigger>
+            <TabsTrigger value="realtime">Real-time</TabsTrigger>
+            <TabsTrigger value="optimization">Optimization</TabsTrigger>
+          </TabsList>
+          
+          <div className="flex items-center space-x-2">
+            {/* Auto-refresh Status */}
+            <div className="flex items-center space-x-2 text-xs text-gray-500">
+              <div className={`w-2 h-2 rounded-full ${isAutoRefreshEnabled ? 'bg-green-500' : 'bg-gray-400'}`} />
+              <span>
+                {isAutoRefreshEnabled ? `Auto-refresh: ${Math.round(currentInterval / 1000)}s` : 'Auto-refresh: Off'}
+              </span>
+            </div>
+            
+            {/* Last Update Time */}
+            <div className="flex items-center space-x-2 text-xs text-gray-500">
+              <span>Last updated:</span>
+              <span className="font-mono">
+                {lastUpdateTime.toLocaleTimeString()}
+              </span>
+            </div>
+            
+            {/* Data Status */}
+            <div className="flex items-center space-x-2 text-xs">
+              {isLoading ? (
+                <div className="flex items-center space-x-1 text-blue-600">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+                  <span>Updating...</span>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-1 text-green-600">
+                  <div className="w-2 h-2 bg-green-600 rounded-full" />
+                  <span>Live</span>
+                </div>
+              )}
+            </div>
+            
+            {/* Refresh Controls */}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={refreshAllAnalytics}
+            >
+              <Activity className="h-4 w-4 mr-2" />
+              Refresh Now
+            </Button>
+            
+            <Button 
+              variant={isAutoRefreshEnabled ? "default" : "outline"}
+              size="sm" 
+              onClick={isAutoRefreshEnabled ? stopAutoRefresh : startAutoRefresh}
+            >
+              {isAutoRefreshEnabled ? 'Stop Auto-refresh' : 'Start Auto-refresh'}
+            </Button>
+          </div>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
@@ -386,6 +531,234 @@ export function AnalyticsDashboard({ startDate, endDate, location, team, departm
           </div>
         </TabsContent>
 
+        {/* Workload Tab */}
+        <TabsContent value="workload" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <AnalyticsChart
+              title="Employee Workload"
+              description="Individual employee workload metrics"
+              data={employeeWorkload.data ? [
+                {
+                  label: 'Total Hours',
+                  value: employeeWorkload.data.totalHours,
+                  color: '#3b82f6'
+                },
+                {
+                  label: 'Total Shifts',
+                  value: employeeWorkload.data.totalShifts,
+                  color: '#10b981'
+                },
+                {
+                  label: 'Avg Hours/Day',
+                  value: employeeWorkload.data.averageHoursPerDay,
+                  color: '#f59e0b'
+                }
+              ] : []}
+              height={300}
+              config={{
+                type: 'bar',
+                showGrid: true,
+                showLegend: false,
+                showTooltip: true,
+                yAxisLabel: 'Count'
+              }}
+            />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <UserCheck className="h-5 w-5" />
+                  <span>Workload Summary</span>
+                </CardTitle>
+                <CardDescription>
+                  Employee workload statistics
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {employeeWorkload.data ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span>Total Hours</span>
+                      <Badge variant="outline">{employeeWorkload.data.totalHours}h</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Total Shifts</span>
+                      <Badge variant="default">{employeeWorkload.data.totalShifts}</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Avg Hours/Day</span>
+                      <Badge variant="secondary">{employeeWorkload.data.averageHoursPerDay?.toFixed(1)}h</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Unique Days</span>
+                      <Badge variant="outline">{employeeWorkload.data.uniqueDays}</Badge>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-500 py-8">
+                    No workload data available
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Performance Tab */}
+        <TabsContent value="performance" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <AnalyticsChart
+              title="Team Performance Metrics"
+              description="Team performance indicators"
+              data={teamPerformance.data ? [
+                {
+                  label: 'Efficiency',
+                  value: teamPerformance.data.performanceMetrics.efficiency,
+                  color: '#10b981'
+                },
+                {
+                  label: 'Reliability',
+                  value: teamPerformance.data.performanceMetrics.reliability,
+                  color: '#3b82f6'
+                },
+                {
+                  label: 'Flexibility',
+                  value: teamPerformance.data.performanceMetrics.flexibility,
+                  color: '#f59e0b'
+                }
+              ] : []}
+              height={300}
+              config={{
+                type: 'bar',
+                showGrid: true,
+                showLegend: false,
+                showTooltip: true,
+                yAxisLabel: 'Score'
+              }}
+            />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Users2 className="h-5 w-5" />
+                  <span>Team Performance Summary</span>
+                </CardTitle>
+                <CardDescription>
+                  Key performance indicators
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {teamPerformance.data ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span>Total Shifts</span>
+                      <Badge variant="outline">{teamPerformance.data.totalShifts}</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Total Hours</span>
+                      <Badge variant="default">{teamPerformance.data.totalHours}h</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Avg Coverage</span>
+                      <Badge variant="secondary">{teamPerformance.data.averageCoverage?.toFixed(1)}%</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Conflicts</span>
+                      <Badge variant="destructive">{teamPerformance.data.conflictCount}</Badge>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-500 py-8">
+                    No performance data available
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Locations Tab */}
+        <TabsContent value="locations" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <AnalyticsChart
+              title="Location Utilization"
+              description="Location utilization metrics"
+              data={locationUtilization.data ? [
+                {
+                  label: 'Total Shifts',
+                  value: locationUtilization.data.totalShifts,
+                  color: '#3b82f6'
+                },
+                {
+                  label: 'Total Hours',
+                  value: locationUtilization.data.totalHours,
+                  color: '#10b981'
+                },
+                {
+                  label: 'Space Efficiency',
+                  value: locationUtilization.data.spaceEfficiency,
+                  color: '#f59e0b'
+                }
+              ] : []}
+              height={300}
+              config={{
+                type: 'bar',
+                showGrid: true,
+                showLegend: false,
+                showTooltip: true,
+                yAxisLabel: 'Count'
+              }}
+            />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <MapPinIcon className="h-5 w-5" />
+                  <span>Location Summary</span>
+                </CardTitle>
+                <CardDescription>
+                  Location utilization statistics
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {locationUtilization.data ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span>Total Shifts</span>
+                      <Badge variant="outline">{locationUtilization.data.totalShifts}</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Total Hours</span>
+                      <Badge variant="default">{locationUtilization.data.totalHours}h</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Avg Utilization</span>
+                      <Badge variant="secondary">{locationUtilization.data.averageUtilization?.toFixed(1)}%</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Space Efficiency</span>
+                      <Badge variant="outline">{locationUtilization.data.spaceEfficiency?.toFixed(1)}%</Badge>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-500 py-8">
+                    No location data available
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Real-time Tab */}
+        <TabsContent value="realtime" className="space-y-6">
+          <div className="grid grid-cols-1 gap-6">
+            <AnalyticsRealtime 
+              date={startDate}
+              location={location}
+              team={team}
+              department={department}
+            />
+          </div>
+        </TabsContent>
+
         {/* Optimization Tab */}
         <TabsContent value="optimization" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -445,7 +818,8 @@ export function AnalyticsDashboard({ startDate, endDate, location, team, departm
             </Card>
           </div>
         </TabsContent>
-      </Tabs>
+        </Tabs>
+      </div>
     </div>
   );
 } 

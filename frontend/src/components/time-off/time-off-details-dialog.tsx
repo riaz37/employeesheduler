@@ -52,7 +52,7 @@ export function TimeOffDetailsDialog({ timeOff, open, onOpenChange }: TimeOffDet
         return 'outline';
       case TimeOffType.PATERNITY_LEAVE:
         return 'outline';
-      case TimeOffType.BEREAVEMENT:
+      case TimeOffType.BEREAVEMENT_LEAVE:
         return 'destructive';
       case TimeOffType.UNPAID_LEAVE:
         return 'secondary';
@@ -131,8 +131,15 @@ export function TimeOffDetailsDialog({ timeOff, open, onOpenChange }: TimeOffDet
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium text-gray-500">Employee ID</Label>
-                  <p className="text-sm">{timeOff.employeeId}</p>
+                  <Label className="text-sm font-medium text-gray-500">Employee</Label>
+                  <p className="text-sm">
+                    {timeOff.employeeId && typeof timeOff.employeeId === 'object' && timeOff.employeeId.firstName && timeOff.employeeId.lastName
+                      ? `${timeOff.employeeId.firstName} ${timeOff.employeeId.lastName} (${timeOff.employeeId.email})`
+                      : timeOff.employeeId && typeof timeOff.employeeId === 'string'
+                      ? timeOff.employeeId
+                      : 'Unknown Employee'
+                    }
+                  </p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-gray-500">Request Date</Label>
@@ -232,7 +239,7 @@ export function TimeOffDetailsDialog({ timeOff, open, onOpenChange }: TimeOffDet
                       <div>
                         <div className="font-medium">Level {approval.level} Approval</div>
                         <div className="text-sm text-gray-600">
-                          Approved by {approval.approverId} on {formatDate(approval.approvedAt)}
+                          Approved by {approval.approverId} on {approval.approvedAt ? formatDate(approval.approvedAt) : 'N/A'}
                         </div>
                         {approval.comments && (
                           <div className="text-sm text-gray-500 mt-1">{approval.comments}</div>

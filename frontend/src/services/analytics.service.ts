@@ -1,5 +1,6 @@
 import { api } from '@/lib/api';
 
+// Core Analytics Interfaces
 export interface DailyScheduleAnalytics {
   date: string;
   location: string;
@@ -12,7 +13,8 @@ export interface DailyScheduleAnalytics {
     coverage: number;
     gaps: number;
     overlaps: number;
-    employees: string[];
+    utilization: number;
+    totalHours: number;
   }>;
   totalShifts: number;
   totalHours: number;
@@ -26,26 +28,66 @@ export interface DailyScheduleAnalytics {
   }>;
 }
 
+export interface WeeklyAnalytics {
+  period: string;
+  dailyAnalytics: DailyScheduleAnalytics[];
+  summary: {
+    totalShifts: number;
+    totalEmployees: number;
+    totalHours: number;
+    averageCoverage: number;
+    totalConflicts: number;
+    criticalConflicts: number;
+  };
+  trends: {
+    coverageTrend: Array<{ date: string; coverage: number }>;
+    conflictTrend: Array<{ date: string; conflicts: number }>;
+    utilizationTrend: Array<{ date: string; utilization: number }>;
+  };
+}
+
+export interface MonthlyAnalytics {
+  period: string;
+  weeklyAnalytics: WeeklyAnalytics[];
+  summary: {
+    totalShifts: number;
+    totalEmployees: number;
+    totalHours: number;
+    averageCoverage: number;
+    totalConflicts: number;
+    criticalConflicts: number;
+    costAnalysis: {
+      totalCost: number;
+      costPerHour: number;
+      costPerEmployee: number;
+    };
+  };
+  trends: {
+    monthlyTrends: Array<{ month: string; metrics: Record<string, number | string> }>;
+    seasonalPatterns: Array<{ season: string; characteristics: string[] }>;
+  };
+}
+
 export interface EmployeeWorkloadAnalytics {
   employeeId: string;
-  period: string;
+  employeeName: string;
   totalHours: number;
   totalShifts: number;
-  averageShiftDuration: number;
+  averageHoursPerDay: number;
+  uniqueDays: number;
+  timeOffDays: number;
+  consecutiveDays: number;
   skillUtilization: Array<{
-    skill: string;
-    utilization: number;
-    lastUsed: string;
+    name: string;
+    level: string;
+    certified: boolean;
   }>;
-  availabilityPattern: Array<{
+  availability: Array<{
     dayOfWeek: number;
-    availableHours: number;
-    preferredHours: number;
-  }>;
-  workloadTrend: Array<{
-    date: string;
-    hours: number;
-    shifts: number;
+    startTime: string;
+    endTime: string;
+    timezone: string;
+    isAvailable: boolean;
   }>;
 }
 
@@ -112,6 +154,14 @@ export interface CoverageOptimization {
   period: string;
   currentCoverage: number;
   targetCoverage: number;
+  roleCoverageMetrics: Array<{
+    role: string;
+    coverage: number;
+    required: number;
+    assigned: number;
+    gaps: number;
+    overlaps: number;
+  }>;
   gaps: Array<{
     role: string;
     date: string;
@@ -121,51 +171,11 @@ export interface CoverageOptimization {
     availableEmployees: string[];
   }>;
   optimizationSuggestions: Array<{
-    type: 'reassign' | 'hire' | 'train' | 'overtime';
+    type: 'reassign' | 'hire' | 'train' | 'maintain';
     description: string;
     impact: number;
     cost: number;
   }>;
-}
-
-export interface WeeklyAnalytics {
-  period: string;
-  dailyAnalytics: DailyScheduleAnalytics[];
-  summary: {
-    totalShifts: number;
-    totalEmployees: number;
-    totalHours: number;
-    averageCoverage: number;
-    totalConflicts: number;
-    criticalConflicts: number;
-  };
-  trends: {
-    coverageTrend: Array<{ date: string; coverage: number }>;
-    conflictTrend: Array<{ date: string; conflicts: number }>;
-    utilizationTrend: Array<{ date: string; utilization: number }>;
-  };
-}
-
-export interface MonthlyAnalytics {
-  period: string;
-  weeklyAnalytics: WeeklyAnalytics[];
-  summary: {
-    totalShifts: number;
-    totalEmployees: number;
-    totalHours: number;
-    averageCoverage: number;
-    totalConflicts: number;
-    criticalConflicts: number;
-    costAnalysis: {
-      totalCost: number;
-      costPerHour: number;
-      costPerEmployee: number;
-    };
-  };
-  trends: {
-    monthlyTrends: Array<{ month: string; metrics: Record<string, number | string> }>;
-    seasonalPatterns: Array<{ season: string; characteristics: string[] }>;
-  };
 }
 
 export interface DashboardStats {
@@ -173,6 +183,7 @@ export interface DashboardStats {
   activeShifts: number;
   upcomingShifts: number;
   pendingTimeOff: number;
+  totalShifts: number;
 }
 
 export interface DashboardActivity {
@@ -192,7 +203,63 @@ export interface DashboardShift {
   required: number;
 }
 
+export interface AnalyticsSummary {
+  period: string;
+  summary: {
+    totalShifts: number;
+    totalEmployees: number;
+    totalHours: number;
+    averageCoverage: number;
+    totalConflicts: number;
+    criticalConflicts: number;
+  };
+  trends: {
+    coverageTrend: Array<{ date: string; coverage: number }>;
+    conflictTrend: Array<{ date: string; conflicts: number }>;
+    utilizationTrend: Array<{ date: string; utilization: number }>;
+  };
+  dailyBreakdown: DailyScheduleAnalytics[];
+}
+
+export interface SingleDateConflict {
+  shiftId: string;
+  title: string;
+  date: string;
+  location: string;
+  team: string;
+  conflicts: {
+    type: string;
+    severity: string;
+    description: string;
+    affectedEmployees: string[];
+  };
+  assignedEmployees: string[];
+}
+
+export interface CoverageGap {
+  _id: {
+    role: string;
+    location: string;
+    team: string;
+  };
+  required: number;
+  assigned: number;
+  gap: number;
+  coverage: number;
+  shifts: Array<{
+    _id: string;
+    title: string;
+    date: string;
+    requirements: Array<{
+      role: string;
+      quantity: number;
+    }>;
+    assignedEmployees: string[];
+  }>;
+}
+
 export class AnalyticsService {
+  // Daily Schedule Analytics
   static async getDailyScheduleAnalytics(
     date: string,
     location?: string,
@@ -205,6 +272,7 @@ export class AnalyticsService {
     return response.data;
   }
 
+  // Weekly Analytics
   static async getWeeklyAnalytics(
     startDate: string,
     location?: string,
@@ -217,6 +285,7 @@ export class AnalyticsService {
     return response.data;
   }
 
+  // Monthly Analytics
   static async getMonthlyAnalytics(
     year: number,
     month: number,
@@ -230,6 +299,7 @@ export class AnalyticsService {
     return response.data;
   }
 
+  // Employee Workload Analytics
   static async getEmployeeWorkloadAnalytics(
     employeeId: string,
     startDate: string,
@@ -241,28 +311,35 @@ export class AnalyticsService {
     return response.data;
   }
 
+  // Team Performance Analytics
   static async getTeamPerformanceAnalytics(
     teamId: string,
     startDate: string,
-    endDate: string
+    endDate: string,
+    location?: string,
+    department?: string
   ): Promise<TeamPerformanceAnalytics> {
-    const response = await api.get<TeamPerformanceAnalytics>(`/analytics/team-performance/${teamId}`, {
-      params: { startDate, endDate }
+    const response = await api.get<TeamPerformanceAnalytics>('/analytics/team-performance', {
+      params: { startDate, endDate, teamId, location, department }
     });
     return response.data;
   }
 
+  // Location Utilization Analytics
   static async getLocationUtilizationAnalytics(
     locationId: string,
     startDate: string,
-    endDate: string
+    endDate: string,
+    team?: string,
+    department?: string
   ): Promise<LocationUtilizationAnalytics> {
-    const response = await api.get<LocationUtilizationAnalytics>(`/analytics/location-utilization/${locationId}`, {
-      params: { startDate, endDate }
+    const response = await api.get<LocationUtilizationAnalytics>('/analytics/location-utilization', {
+      params: { startDate, endDate, locationId, team, department }
     });
     return response.data;
   }
 
+  // Conflict Analysis (Date Range)
   static async getConflictAnalysis(
     startDate: string,
     endDate: string,
@@ -276,6 +353,18 @@ export class AnalyticsService {
     return response.data;
   }
 
+  // Single Date Conflicts
+  static async getConflictsForDate(
+    date: string,
+    location?: string
+  ): Promise<SingleDateConflict[]> {
+    const response = await api.get<SingleDateConflict[]>('/analytics/conflicts', {
+      params: { date, location }
+    });
+    return response.data;
+  }
+
+  // Coverage Optimization
   static async getCoverageOptimization(
     startDate: string,
     endDate: string,
@@ -289,38 +378,96 @@ export class AnalyticsService {
     return response.data;
   }
 
-  static async getCustomAnalytics(
-    query: string,
-    params?: Record<string, unknown>
-  ): Promise<Record<string, unknown>> {
-    const response = await api.post('/analytics/custom', { query }, { params });
-    return response.data;
-  }
-
-  static async exportAnalytics(
-    type: 'daily' | 'weekly' | 'monthly' | 'employee' | 'team' | 'location',
-    params: Record<string, unknown>,
-    format: 'csv' | 'excel' | 'pdf' = 'csv'
-  ): Promise<Blob> {
-    const response = await api.get(`/analytics/export/${type}`, {
-      params: { ...params, format },
-      responseType: 'blob'
+  // Coverage Gaps
+  static async getCoverageGaps(
+    date: string,
+    location?: string
+  ): Promise<CoverageGap[]> {
+    const response = await api.get<CoverageGap[]>('/analytics/coverage-gaps', {
+      params: { date, location }
     });
     return response.data;
   }
 
-  static async getDashboardStats(): Promise<DashboardStats> {
-    const response = await api.get<DashboardStats>('/analytics/dashboard/stats');
+  // Dashboard Stats
+  static async getDashboardStats(
+    date?: string,
+    location?: string,
+    team?: string,
+    department?: string
+  ): Promise<DashboardStats> {
+    const response = await api.get<DashboardStats>('/analytics/dashboard-stats', {
+      params: { date, location, team, department }
+    });
     return response.data;
   }
 
-  static async getRecentActivities(): Promise<DashboardActivity[]> {
-    const response = await api.get<DashboardActivity[]>('/analytics/dashboard/activities');
+  // Recent Activities
+  static async getRecentActivities(
+    date?: string,
+    location?: string,
+    team?: string,
+    department?: string
+  ): Promise<DashboardActivity[]> {
+    const response = await api.get<DashboardActivity[]>('/analytics/recent-activities', {
+      params: { date, location, team, department }
+    });
     return response.data;
   }
 
-  static async getUpcomingShifts(): Promise<DashboardShift[]> {
-    const response = await api.get<DashboardShift[]>('/analytics/dashboard/shifts');
+  // Upcoming Shifts
+  static async getUpcomingShifts(
+    date?: string,
+    location?: string,
+    team?: string,
+    department?: string
+  ): Promise<DashboardShift[]> {
+    const response = await api.get<DashboardShift[]>('/analytics/upcoming-shifts', {
+      params: { date, location, team, department }
+    });
     return response.data;
   }
-} 
+
+  // Analytics Summary
+  static async getAnalyticsSummary(
+    startDate: string,
+    endDate: string,
+    location?: string,
+    team?: string,
+    department?: string
+  ): Promise<AnalyticsSummary> {
+    const response = await api.get<AnalyticsSummary>('/analytics/analytics-summary', {
+      params: { startDate, endDate, location, team, department }
+    });
+    return response.data;
+  }
+
+  // Export Analytics
+  static async exportAnalytics(
+    format: 'csv' | 'json',
+    startDate: string,
+    endDate: string,
+    type: 'daily' | 'weekly' | 'monthly' | 'employee' | 'team' | 'location',
+    location?: string,
+    team?: string,
+    department?: string
+  ): Promise<Blob | Record<string, unknown>> {
+    const response = await api.get(`/analytics/export/${format}`, {
+      params: { startDate, endDate, type, location, team, department },
+      responseType: format === 'csv' ? 'blob' : 'json'
+    });
+    return response.data;
+  }
+
+  // Utility method to download CSV
+  static downloadCSV(data: Blob, filename: string): void {
+    const url = window.URL.createObjectURL(data);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }
+}

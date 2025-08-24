@@ -99,7 +99,7 @@ export default function LoginPage() {
 
             <div className="mt-6 text-center text-sm text-gray-600">
               <p>Demo Credentials:</p>
-              <p>Email: employee1@company.com</p>
+              <p>Email: john.smith1@company.com</p>
               <p>Password: password123</p>
             </div>
           </CardContent>

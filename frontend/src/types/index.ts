@@ -145,6 +145,7 @@ export enum TimeOffType {
   BEREAVEMENT_LEAVE = 'bereavement_leave',
   UNPAID_LEAVE = 'unpaid_leave',
   OTHER = 'other',
+  COMPENSATORY_TIME = 'compensatory_time',
 }
 
 export enum TimeOffStatus {
@@ -153,6 +154,7 @@ export enum TimeOffStatus {
   REJECTED = 'rejected',
   CANCELLED = 'cancelled',
   IN_PROGRESS = 'in_progress',
+  MODIFIED = 'modified',
 }
 
 export enum TimeOffPriority {
@@ -186,7 +188,7 @@ export interface TimeOffModification {
 export interface TimeOff {
   _id: string;
   requestId: string;
-  employeeId: string;
+  employeeId: string | Pick<Employee, 'firstName' | 'lastName' | 'email'>;
   type: TimeOffType;
   status: TimeOffStatus;
   priority: TimeOffPriority;
@@ -304,6 +306,37 @@ export interface LoginResponse {
 export interface ChangePasswordRequest {
   currentPassword: string;
   newPassword: string;
+}
+
+// Coverage types
+export interface RoleCoverageMetric {
+  role: string;
+  coverage: number;
+  required: number;
+  assigned: number;
+  gaps: number;
+  overlaps: number;
+}
+
+export interface CoverageOptimization {
+  period: string;
+  currentCoverage: number;
+  targetCoverage: number;
+  roleCoverageMetrics: RoleCoverageMetric[];
+  gaps: {
+    role: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    shortage: number;
+    availableEmployees: string[];
+  }[];
+  optimizationSuggestions: {
+    type: 'reassign' | 'hire' | 'train' | 'maintain';
+    description: string;
+    impact: number;
+    cost: number;
+  }[];
 }
 
 // API Response types

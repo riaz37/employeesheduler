@@ -9,7 +9,7 @@ import type { DashboardShift } from '@/services/analytics.service';
 export function DashboardShifts() {
   const { data: shifts, isLoading, error } = useQuery({
     queryKey: ['dashboard-shifts'],
-    queryFn: AnalyticsService.getUpcomingShifts,
+    queryFn: () => AnalyticsService.getUpcomingShifts(),
     staleTime: 2 * 60 * 1000, // 2 minutes
     refetchInterval: 2 * 60 * 1000, // Refetch every 2 minutes
   });
@@ -77,7 +77,7 @@ export function DashboardShifts() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {shifts.map((shift) => (
+          {shifts.map((shift: DashboardShift) => (
             <div key={shift.id} className="flex items-center justify-between">
               <div className="flex-1">
                 <p className="text-sm font-medium">{shift.title}</p>

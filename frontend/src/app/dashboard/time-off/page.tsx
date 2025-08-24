@@ -62,7 +62,7 @@ export default function TimeOffPage() {
 
   const handleApproveTimeOff = async (id: string) => {
     try {
-      await approveTimeOffMutation.mutateAsync({ id, level: 1, comments: 'Approved' });
+      await approveTimeOffMutation.mutateAsync({ id, comments: 'Approved' });
     } catch (error) {
       console.error('Failed to approve time-off request:', error);
     }
@@ -105,7 +105,7 @@ export default function TimeOffPage() {
         return 'outline';
       case TimeOffType.PATERNITY_LEAVE:
         return 'outline';
-      case TimeOffType.BEREAVEMENT:
+      case TimeOffType.BEREAVEMENT_LEAVE:
         return 'destructive';
       case TimeOffType.UNPAID_LEAVE:
         return 'secondary';
@@ -176,7 +176,7 @@ export default function TimeOffPage() {
         { value: 'personal_leave', label: 'Personal Leave' },
         { value: 'maternity_leave', label: 'Maternity Leave' },
         { value: 'paternity_leave', label: 'Paternity Leave' },
-        { value: 'bereavement', label: 'Bereavement' },
+        { value: 'bereavement_leave', label: 'Bereavement' },
         { value: 'unpaid_leave', label: 'Unpaid Leave' },
         { value: 'compensatory_time', label: 'Compensatory Time' },
         { value: 'other', label: 'Other' },
@@ -224,10 +224,22 @@ export default function TimeOffPage() {
         <div className="flex items-center space-x-2">
           <Avatar className="h-6 w-6">
             <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
-              {timeOff.employeeId.substring(0, 2).toUpperCase()}
+              {timeOff.employeeId && typeof timeOff.employeeId === 'object' && timeOff.employeeId.firstName && timeOff.employeeId.lastName
+                ? `${timeOff.employeeId.firstName[0]}${timeOff.employeeId.lastName[0]}`.toUpperCase()
+                : timeOff.employeeId && typeof timeOff.employeeId === 'string'
+                ? timeOff.employeeId.substring(0, 2).toUpperCase()
+                : 'NA'
+              }
             </AvatarFallback>
           </Avatar>
-          <span className="text-sm">{timeOff.employeeId}</span>
+          <span className="text-sm">
+            {timeOff.employeeId && typeof timeOff.employeeId === 'object' && timeOff.employeeId.firstName && timeOff.employeeId.lastName
+              ? `${timeOff.employeeId.firstName} ${timeOff.employeeId.lastName}`
+              : timeOff.employeeId && typeof timeOff.employeeId === 'string'
+              ? timeOff.employeeId
+              : 'Unknown Employee'
+            }
+          </span>
         </div>
       ),
     },

@@ -9,7 +9,6 @@ import {
   Clock, 
   BarChart3, 
   Settings,
-  Home,
   UserCheck,
   CalendarDays
 } from 'lucide-react';
@@ -18,7 +17,7 @@ const navigationItems = [
   {
     name: 'Dashboard',
     href: '/dashboard',
-    icon: Home,
+    icon: BarChart3,
   },
   {
     name: 'Employees',
@@ -39,11 +38,6 @@ const navigationItems = [
     name: 'Time Off',
     href: '/dashboard/time-off',
     icon: CalendarDays,
-  },
-  {
-    name: 'Analytics',
-    href: '/dashboard/analytics',
-    icon: BarChart3,
   },
 ];
 

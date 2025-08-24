@@ -1,36 +1,104 @@
-import { Suspense } from 'react';
-import { DashboardStats } from '@/components/dashboard/dashboard-stats';
-import { DashboardActivity } from '@/components/dashboard/dashboard-activity';
-import { DashboardShifts } from '@/components/dashboard/dashboard-shifts';
-import { DashboardSkeleton } from '@/components/dashboard/dashboard-skeleton';
-import { Metadata } from 'next';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Dashboard - Employee Scheduler',
-  description: 'Overview of your employee scheduling system',
-};
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/ui/page-header';
+import { AnalyticsFilters, DateRange } from '@/components/analytics/analytics-filters';
+import { AnalyticsExport } from '@/components/analytics/analytics-export';
+import { AnalyticsDashboard } from '@/components/analytics/analytics-dashboard';
+import { AnalyticsOverview } from '@/components/analytics/analytics-overview';
+import { 
+  Share2,
+  Download
+} from 'lucide-react';
 
-export default async function DashboardPage() {
+export default function DashboardPage() {
+  // Fix date logic - use current date and last 30 days
+  const [dateRange, setDateRange] = useState<DateRange>({
+    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    endDate: new Date().toISOString().split('T')[0],
+  });
+  
+  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
+  const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
+  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+
+  const handleExport = async (format: string, fields: string[], options: Record<string, unknown>) => {
+    console.log('Exporting analytics:', { format, fields, options });
+    // TODO: Implement actual export logic using AnalyticsService
+    await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate export
+  };
+
+  const handleShare = () => {
+    console.log('Sharing analytics');
+    // TODO: Implement share functionality
+  };
+
+  const handleQuickStatsExport = () => {
+    console.log('Exporting quick stats');
+    // TODO: Implement quick stats export
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600">Overview of your employee scheduling system</p>
-      </div>
+      {/* Page Header */}
+      <PageHeader
+        title="Analytics Dashboard"
+        description="Real-time analytics and insights into employee performance, shift coverage, and operational efficiency"
+        actions={
+          <div className="flex space-x-2">
+            <Button variant="outline" onClick={handleQuickStatsExport}>
+              <Download className="mr-2 h-4 w-4" />
+              Quick Stats
+            </Button>
+            <AnalyticsExport onExport={handleExport} />
+            <Button variant="outline" onClick={handleShare}>
+              <Share2 className="mr-2 h-4 w-4" />
+              Share
+            </Button>
+          </div>
+        }
+      />
 
-      <Suspense fallback={<DashboardSkeleton />}>
-        <DashboardStats />
-      </Suspense>
+      {/* Analytics Overview - Consolidated */}
+      <AnalyticsOverview
+        startDate={dateRange.startDate}
+        endDate={dateRange.endDate}
+        location={selectedLocations.length === 1 ? selectedLocations[0] : undefined}
+        team={selectedTeams.length === 1 ? selectedTeams[0] : undefined}
+        department={selectedDepartments.length === 1 ? selectedDepartments[0] : undefined}
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Suspense fallback={<DashboardSkeleton />}>
-          <DashboardActivity />
-        </Suspense>
-        
-        <Suspense fallback={<DashboardSkeleton />}>
-          <DashboardShifts />
-        </Suspense>
-      </div>
+      {/* Filters */}
+      <AnalyticsFilters
+        dateRange={dateRange}
+        onDateRangeChange={setDateRange}
+        departments={['Engineering', 'Sales', 'Marketing', 'Operations', 'HR', 'Finance']}
+        teams={['Team Alpha', 'Team Beta', 'Team Gamma', 'Team Delta']}
+        locations={['Main Office', 'Branch A', 'Branch B', 'Remote']}
+        selectedDepartments={selectedDepartments}
+        selectedTeams={selectedTeams}
+        selectedLocations={selectedLocations}
+        onDepartmentChange={setSelectedDepartments}
+        onTeamChange={setSelectedTeams}
+        onLocationChange={setSelectedLocations}
+        onReset={() => {
+          setSelectedDepartments([]);
+          setSelectedTeams([]);
+          setSelectedLocations([]);
+        }}
+      />
+
+      {/* Main Analytics Dashboard */}
+      <AnalyticsDashboard
+        startDate={dateRange.startDate}
+        endDate={dateRange.endDate}
+        location={selectedLocations.length === 1 ? selectedLocations[0] : undefined}
+        team={selectedTeams.length === 1 ? selectedTeams[0] : undefined}
+        department={selectedDepartments.length === 1 ? selectedDepartments[0] : undefined}
+      />
     </div>
   );
 } 
