@@ -47,33 +47,33 @@ async function bootstrap() {
     }),
   );
 
-  // Swagger documentation
-  if (configService.get('NODE_ENV') !== 'production') {
-    const config = new DocumentBuilder()
-      .setTitle('Employee Scheduler API')
-      .setDescription(
-        'API documentation for Employee Scheduler backend service',
-      )
-      .setVersion('1.0.0')
+      // Swagger documentation
+    if (configService.get('NODE_ENV') !== 'production') {
+      const config = new DocumentBuilder()
+        .setTitle('Employee Scheduler API')
+        .setDescription(
+          'API documentation for Employee Scheduler backend service',
+        )
+        .setVersion('1.0.0')
 
-      .addBearerAuth(
-        {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
-          name: 'JWT',
-          description: 'Enter JWT token obtained from login endpoint',
-          in: 'header',
-        },
-        'JWT-auth',
-      )
+        .addBearerAuth(
+          {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT',
+            name: 'JWT',
+            description: 'Enter JWT token obtained from login endpoint',
+            in: 'header',
+          },
+          'JWT-auth',
+        )
 
-      .build();
+        .build();
 
-    const document = SwaggerModule.createDocument(app, config);
+      const document = SwaggerModule.createDocument(app, config);
 
-    // Custom Swagger UI options
-    SwaggerModule.setup('api/docs', app, document, {
+      // Custom Swagger UI options
+      SwaggerModule.setup('docs', app, document, {
       swaggerOptions: {
         persistAuthorization: true,
         displayRequestDuration: true,
@@ -95,7 +95,7 @@ async function bootstrap() {
       },
     });
 
-    logger.log('Swagger documentation available at /api/docs');
+          logger.log('Swagger documentation available at /docs');
   }
 
   // Global exception filter
