@@ -47,56 +47,54 @@ async function bootstrap() {
     }),
   );
 
-      // Swagger documentation
-    if (configService.get('NODE_ENV') !== 'production') {
-      const config = new DocumentBuilder()
-        .setTitle('Employee Scheduler API')
-        .setDescription(
-          'API documentation for Employee Scheduler backend service',
-        )
-        .setVersion('1.0.0')
+  // Swagger documentation
+  const config = new DocumentBuilder()
+    .setTitle('Employee Scheduler API')
+    .setDescription(
+      'API documentation for Employee Scheduler backend service',
+    )
+    .setVersion('1.0.0')
 
-        .addBearerAuth(
-          {
-            type: 'http',
-            scheme: 'bearer',
-            bearerFormat: 'JWT',
-            name: 'JWT',
-            description: 'Enter JWT token obtained from login endpoint',
-            in: 'header',
-          },
-          'JWT-auth',
-        )
-
-        .build();
-
-      const document = SwaggerModule.createDocument(app, config);
-
-      // Custom Swagger UI options
-      SwaggerModule.setup('docs', app, document, {
-      swaggerOptions: {
-        persistAuthorization: true,
-        displayRequestDuration: true,
-        showRequestHeaders: true,
-        showCommonExtensions: true,
-        docExpansion: 'list',
-        defaultModelsExpandDepth: 2,
-        defaultModelExpandDepth: 2,
-        tryItOutEnabled: true,
-        requestInterceptor: (req: any) => {
-          // Add default headers for testing
-          req.headers['Content-Type'] = 'application/json';
-          return req;
-        },
-        responseInterceptor: (res: any) => {
-          // Format response for better readability
-          return res;
-        },
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token obtained from login endpoint',
+        in: 'header',
       },
-    });
+      'JWT-auth',
+    )
 
-          logger.log('Swagger documentation available at /docs');
-  }
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+
+  // Custom Swagger UI options
+  SwaggerModule.setup('docs', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+      displayRequestDuration: true,
+      showRequestHeaders: true,
+      showCommonExtensions: true,
+      docExpansion: 'list',
+      defaultModelsExpandDepth: 2,
+      defaultModelExpandDepth: 2,
+      tryItOutEnabled: true,
+      requestInterceptor: (req: any) => {
+        // Add default headers for testing
+        req.headers['Content-Type'] = 'application/json';
+        return req;
+      },
+      responseInterceptor: (res: any) => {
+        // Format response for better readability
+        return res;
+      },
+    },
+  });
+
+  logger.log('Swagger documentation available at /docs');
 
   // Global exception filter
   app.useGlobalFilters();
@@ -106,7 +104,7 @@ async function bootstrap() {
 
   logger.log(`Application is running on: http://localhost:${port}`);
   logger.log(
-    `API documentation available at: http://localhost:${port}/api/docs`,
+    `API documentation available at: http://localhost:${port}/docs`,
   );
   logger.log(`Environment: ${configService.get('NODE_ENV', 'development')}`);
 }
